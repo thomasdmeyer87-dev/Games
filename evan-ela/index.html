@@ -1,73 +1,97 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Evan Vocabulary Game</title>
+  <title>Evan - ELA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../assets/styles.css" />
+
+  <style>
+    .page-title {
+      text-align: center;
+      color: white;
+      margin-bottom: 20px;
+      font-size: 2.5rem;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 700px) {
+      .columns {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .column {
+      background: rgba(255,255,255,0.95);
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    }
+
+    .column h2 {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .game-button {
+      display: block;
+      width: 100%;
+      margin: 12px 0;
+      padding: 18px;
+      border-radius: 16px;
+      text-decoration: none;
+      color: white;
+      font-weight: bold;
+      font-size: 1.3rem;
+      text-align: center;
+      background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+    }
+
+    .back {
+      display: block;
+      margin-top: 25px;
+      text-align: center;
+      color: white;
+      font-weight: bold;
+      text-decoration: none;
+    }
+  </style>
 </head>
+
 <body>
-  <main class="app-shell">
-    <section class="game-card">
-      <h1>Evan Vocabulary</h1>
-      <p class="subtitle">Read the word, say what it means, then check yourself.</p>
 
-      <div class="score-row">
-        <span>Card <span id="cardNumber">1</span></span>
-        <span>Correct: <span id="correctCount">0</span></span>
-      </div>
+  <h1 class="page-title">Evan - ELA</h1>
 
-      <div class="word-display" id="wordDisplay">brave</div>
-      <p id="definition" class="feedback"></p>
+  <div class="columns">
 
-      <div class="controls">
-        <button class="big-button blue" onclick="showDefinition()">Show Meaning</button>
-        <button class="big-button green" onclick="markCorrect()">I Got It</button>
-        <button class="big-button orange" onclick="nextWord()">Next Word</button>
-      </div>
+    <!-- Vocabulary Column -->
+    <div class="column">
+      <h2>Vocabulary</h2>
 
-      <a class="small-link" href="../">Back to Practice Hub</a>
-    </section>
-  </main>
+      <a class="game-button" href="../evan-vocab-3/index.html">
+        Key Literacy Terms 3
+      </a>
 
-  <script>
-    const words = [
-      { word: "brave", definition: "showing courage" },
-      { word: "curious", definition: "wanting to learn or know more" },
-      { word: "gentle", definition: "kind and careful" },
-      { word: "honest", definition: "telling the truth" },
-      { word: "patient", definition: "able to wait calmly" },
-      { word: "focus", definition: "to pay close attention" },
-      { word: "effort", definition: "hard work or trying your best" },
-      { word: "respect", definition: "showing care for someone or something" }
-    ];
+      <a class="game-button" href="../evan-vocab-4/index.html">
+        Key Literacy Terms 4
+      </a>
+    </div>
 
-    let index = 0;
-    let correct = 0;
+    <!-- Future Columns Example -->
+    <!--
+    <div class="column">
+      <h2>Reading</h2>
+      <a class="game-button" href="#">Coming Soon</a>
+    </div>
+    -->
 
-    function updateCard() {
-      document.getElementById("wordDisplay").textContent = words[index].word;
-      document.getElementById("definition").textContent = "";
-      document.getElementById("cardNumber").textContent = index + 1;
-      document.getElementById("correctCount").textContent = correct;
-    }
+  </div>
 
-    function showDefinition() {
-      document.getElementById("definition").textContent = words[index].definition;
-    }
+  <a class="back" href="../index.html">← Back</a>
 
-    function markCorrect() {
-      correct += 1;
-      document.getElementById("correctCount").textContent = correct;
-      document.getElementById("definition").textContent = "Nice job!";
-    }
-
-    function nextWord() {
-      index = (index + 1) % words.length;
-      updateCard();
-    }
-
-    updateCard();
-  </script>
 </body>
 </html>
