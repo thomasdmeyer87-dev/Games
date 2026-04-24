@@ -1,0 +1,8 @@
+{
+  "name": "Kids Practice Hub",
+  "short_name": "Practice",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f6f8ff",
+  "theme_color": "#3b82f6"
+}
