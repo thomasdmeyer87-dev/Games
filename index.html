@@ -1,64 +1,35 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Homework Practice</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: linear-gradient(to bottom, #6dd5ed, #2193b0);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-    }
-
-    .container {
-      text-align: center;
-      width: 100%;
-      max-width: 400px;
-    }
-
-    h1 {
-      color: white;
-      font-size: 32px;
-      margin-bottom: 30px;
-    }
-
-    .button {
-      display: block;
-      margin: 15px auto;
-      padding: 25px;
-      width: 80%;
-      font-size: 28px;
-      font-weight: bold;
-      border-radius: 20px;
-      text-decoration: none;
-      color: white;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    }
-
-    .evan {
-      background-color: #4CAF50;
-    }
-
-    .eli {
-      background-color: #2196F3;
-    }
-
-    .button:active {
-      transform: scale(0.97);
-    }
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kids Practice Hub</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="manifest" href="manifest.json" />
 </head>
-
 <body>
-  <div class="container">
-    <h1>Homework Practice</h1>
+  <main class="app-shell">
+    <section class="hero">
+      <p class="eyebrow">Meyer Practice</p>
+      <h1>What do you want to practice?</h1>
+      <p class="subtitle">Pick your name, then choose a game.</p>
+    </section>
 
-    <a class="button evan" href="evan/index.html">Evan</a>
-    <a class="button eli" href="eli/index.html">Eli</a>
-  </div>
+    <section class="kid-grid">
+      <article class="kid-card evan-card">
+        <div class="avatar">E</div>
+        <h2>Evan</h2>
+        <p>Vocabulary, reading, and more.</p>
+        <a class="big-button green" href="evan-vocabulary/">Vocabulary Game</a>
+      </article>
+
+      <article class="kid-card eli-card">
+        <div class="avatar">E</div>
+        <h2>Eli</h2>
+        <p>Sight words, recognition, and more.</p>
+        <a class="big-button blue" href="eli-sight-words/">Sight Word Game</a>
+      </article>
+    </section>
+  </main>
 </body>
 </html>
