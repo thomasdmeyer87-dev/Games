@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Key Literacy Terms 3</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #fef9f0 0%, #fde8d8 100%);
+      font-family: 'Nunito', sans-serif;
+      padding: 20px 16px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 540px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .logo {
+      font-family: 'Fredoka One', cursive;
+      font-size: 22px;
+      color: #e07b39;
+    }
+
+    .score-badge {
+      background: #fff;
+      border: 2px solid #f5c07a;
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-weight: 900;
+      color: #d4770a;
+      font-size: 15px;
+    }
+
+    .progress-wrap {
+      width: 100%;
+      height: 10px;
+      background: #f5ddb8;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #f5a623, #e07b39);
+      border-radius: 10px;
+      transition: width 0.4s ease;
+    }
+
+    .progress-label {
+      font-size: 12px;
+      color: #b07540;
+      margin-bottom: 20px;
+      align-self: flex-start;
+    }
+
+    .def-card {
+      width: 100%;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 6px 24px rgba(200,120,40,0.13);
+      padding: 28px 28px 24px;
+      margin-bottom: 24px;
+      border: 2px solid #f5c07a;
+    }
+
+    .def-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #e0923a;
+      margin-bottom: 10px;
+    }
+
+    .def-text {
+      font-size: 20px;
+      font-weight: 700;
+      color: #3d2500;
+      line-height: 1.5;
+    }
+
+    .bank-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #8c5a20;
+      margin-bottom: 14px;
+      align-self: flex-start;
+    }
+
+    .choices-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .choice-btn {
+      background: #fff;
+      border: 2.5px solid #f0c070;
+      border-radius: 14px;
+      padding: 10px 8px;
+      font-size: 14px;
+      font-weight: 800;
+      font-family: 'Nunito', sans-serif;
+      color: #5a3500;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(200,120,40,0.08);
+      transition: all 0.15s ease;
+    }
+
+    .choice-btn:hover:not(:disabled) {
+      filter: brightness(1.07);
+      transform: translateY(-1px);
+    }
+
+    .choice-btn:disabled { cursor: default; }
+
+    .choice-btn.correct {
+      background: #d4f5d4;
+      border-color: #4caf50;
+      color: #1b5e20;
+    }
+
+    .choice-btn.wrong {
+      background: #fde0dc;
+      border-color: #ef5350;
+      color: #7f0000;
+    }
+
+    .choice-btn.dimmed { opacity: 0.45; }
+
+    .feedback-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .feedback {
+      font-size: 18px;
+      font-weight: 900;
+      padding: 10px 24px;
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .feedback.correct-msg { color: #2e7d32; background: #e8f5e9; }
+    .feedback.wrong-msg   { color: #c62828; background: #ffebee; }
+
+    .next-btn {
+      background: linear-gradient(135deg, #f5a623, #e07b39);
+      border: none;
+      border-radius: 14px;
+      padding: 14px 36px;
+      font-size: 17px;
+      font-weight: 900;
+      font-family: 'Nunito', sans-serif;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(220,100,30,0.3);
+      transition: all 0.15s ease;
+    }
+
+    .next-btn:hover { filter: brightness(1.07); transform: translateY(-1px); }
+
+    .done-card {
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 8px 32px rgba(200,120,40,0.15);
+      padding: 48px 36px;
+      text-align: center;
+      width: 100%;
+      border: 2px solid #f5c07a;
+    }
+
+    .done-emoji { font-size: 64px; margin-bottom: 8px; }
+    .done-title { font-family: 'Fredoka One', cursive; font-size: 32px; color: #e07b39; margin-bottom: 8px; }
+    .done-score { font-size: 24px; font-weight: 900; color: #3d2500; margin-bottom: 4px; }
+    .done-pct   { font-size: 48px; font-weight: 900; color: #f5a623; font-family: 'Fredoka One', cursive; margin-bottom: 12px; }
+    .done-msg   { font-size: 16px; color: #7a4a10; margin-bottom: 24px; }
+
+    .restart-btn {
+      background: linear-gradient(135deg, #f5a623, #e07b39);
+      border: none;
+      border-radius: 16px;
+      padding: 14px 40px;
+      font-size: 18px;
+      font-weight: 900;
+      font-family: 'Nunito', sans-serif;
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(220,100,30,0.3);
+    }
+
+    .restart-btn:hover { filter: brightness(1.07); transform: translateY(-1px); }
+
+    .shake    { animation: shake 0.4s ease; }
+    .bounce   { animation: bounceIn 0.5s ease; }
+    .hidden   { display: none !important; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-5px); }
+      80% { transform: translateX(5px); }
+    }
+
+    @keyframes bounceIn {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.04); }
+      70% { transform: scale(0.97); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+
+<body>
+<div id="app"></div>
+
+<script>
+  const terms = [
+    { word: "fiction", definition: "Literature that describes imaginary events and people." },
+    { word: "nonfiction", definition: "Based on facts, real events, and real people." },
+    { word: "rising action", definition: "The part of a story where events build suspense and develop the conflict." },
+    { word: "climax", definition: "The most intense or exciting point of a story; the turning point." },
+    { word: "resolution", definition: "The part of the story where conflicts are resolved and the story ends." },
+    { word: "context clues", definition: "Hints in the text that help readers figure out the meaning of unknown words." },
+    { word: "inference", definition: "A conclusion you make based on clues in the text plus your own knowledge." },
+    { word: "figurative language", definition: "Language that uses words in a non-literal way to create meaning or imagery." },
+    { word: "similes", definition: 'A comparison between two things generally using "like" or "as."' },
+    { word: "idiom", definition: "A phrase with a hidden meaning that doesn't mean what it says." },
+    { word: "alliteration", definition: "Two or more words in a row with the same starting sound." }
+  ];
+
+  function shuffle(arr) {
+    return [...arr].sort(() => Math.random() - 0.5);
+  }
+
+  let deck, index, score, selected, done;
+
+  function init() {
+    deck = shuffle(terms);
+    index = 0;
+    score = 0;
+    selected = null;
+    done = false;
+    render();
+  }
+
+  function currentCard() {
+    return deck[index];
+  }
+
+  function handlePick(word) {
+    if (selected) return;
+    selected = word;
+    const card = currentCard();
+    const btn = document.querySelector(`[data-word="${CSS.escape(word)}"]`);
+
+    if (word === card.word) {
+      score++;
+      btn.classList.add('correct');
+      const defCard = document.querySelector('.def-card');
+      defCard.classList.add('bounce');
+      defCard.addEventListener('animationend', () => defCard.classList.remove('bounce'), { once: true });
+    } else {
+      btn.classList.add('wrong');
+      btn.classList.add('shake');
+      btn.addEventListener('animationend', () => btn.classList.remove('shake'), { once: true });
+    }
+
+    document.querySelectorAll('.choice-btn').forEach(b => {
+      const w = b.getAttribute('data-word');
+      if (w !== card.word && w !== word) b.classList.add('dimmed');
+      if (w === card.word) b.classList.add('correct');
+      b.disabled = true;
+    });
+
+    document.querySelector('.score-badge').textContent = `⭐ ${score} / ${deck.length}`;
+
+    showFeedback();
+  }
+
+  function showFeedback() {
+    const card = currentCard();
+    const wrap = document.querySelector('.feedback-wrap');
+    const msg = document.querySelector('.feedback');
+    const nextBtn = document.querySelector('.next-btn');
+
+    wrap.classList.remove('hidden');
+    if (selected === card.word) {
+      msg.textContent = '✅ Correct!';
+      msg.className = 'feedback correct-msg';
+    } else {
+      msg.textContent = `❌ The answer was "${card.word}"`;
+      msg.className = 'feedback wrong-msg';
+    }
+    nextBtn.textContent = (index + 1 >= deck.length) ? 'See Results →' : 'Next Card →';
+  }
+
+  function handleNext() {
+    if (index + 1 >= deck.length) {
+      done = true;
+      render();
+    } else {
+      index++;
+      selected = null;
+      render();
+    }
+  }
+
+  function render() {
+    const app = document.getElementById('app');
+
+    if (done) {
+      const pct = Math.round((score / deck.length) * 100);
+      const emoji = pct === 100 ? '🏆' : pct >= 70 ? '⭐' : '📚';
+      const msg = pct === 100 ? "Perfect score! You're a literary genius!"
+        : pct >= 70 ? "Great job! Keep it up!"
+        : "Keep studying — you've got this!";
+
+      app.innerHTML = `
+        <div class="done-card">
+          <div class="done-emoji">${emoji}</div>
+          <h2 class="done-title">Quiz Complete!</h2>
+          <p class="done-score">${score} / ${deck.length} correct</p>
+          <p class="done-pct">${pct}%</p>
+          <p class="done-msg">${msg}</p>
+          <button class="restart-btn" onclick="init()">Try Again</button>
+        </div>`;
+      return;
+    }
+
+    const card = currentCard();
+    const choices = shuffle(terms).map(t => t.word);
+    const progress = ((index) / deck.length) * 100;
+
+    const choiceButtons = choices.map(word => `
+      <button class="choice-btn" data-word="${word}" onclick="handlePick('${word.replace(/'/g, "\\'")}')">
+        ${word}
+      </button>`).join('');
+
+    app.innerHTML = `
+      <div class="header">
+        <div class="logo">📖 Key Literacy Terms 3</div>
+        <div class="score-badge">⭐ ${score} / ${deck.length}</div>
+      </div>
+
+      <div class="progress-wrap">
+        <div class="progress-bar" style="width:${progress}%"></div>
+      </div>
+
+      <div class="progress-label">Card ${index + 1} of ${deck.length}</div>
+
+      <div class="def-card">
+        <div class="def-label">DEFINITION</div>
+        <p class="def-text">${card.definition}</p>
+      </div>
+
+      <div class="bank-label">Which word matches this definition?</div>
+
+      <div class="choices-grid">
+        ${choiceButtons}
+      </div>
+
+      <div class="feedback-wrap hidden">
+        <div class="feedback"></div>
+        <button class="next-btn" onclick="handleNext()"></button>
+      </div>`;
+  }
+
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Key Literacy Terms 4</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f0f4ff 0%, #d8e4fd 100%);
+      font-family: 'Nunito', sans-serif;
+      padding: 20px 16px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 540px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .header {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .logo {
+      font-family: 'Fredoka One', cursive;
+      font-size: 22px;
+      color: #4a6fd4;
+    }
+
+    .score-badge {
+      background: #fff;
+      border: 2px solid #a0b8f5;
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-weight: 900;
+      color: #3a5bbf;
+      font-size: 15px;
+    }
+
+    .progress-wrap {
+      width: 100%;
+      height: 10px;
+      background: #c5d4f7;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, #6a8fe8, #4a6fd4);
+      border-radius: 10px;
+      transition: width 0.4s ease;
+    }
+
+    .progress-label {
+      font-size: 12px;
+      color: #4a6fd4;
+      margin-bottom: 20px;
+      align-self: flex-start;
+    }
+
+    .def-card {
+      width: 100%;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 6px 24px rgba(74,111,212,0.13);
+      padding: 28px 28px 24px;
+      margin-bottom: 24px;
+      border: 2px solid #a0b8f5;
+    }
+
+    .def-label {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      color: #4a6fd4;
+      margin-bottom: 10px;
+    }
+
+    .def-text {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a2a5e;
+      line-height: 1.5;
+    }
+
+    .bank-label {
+      font-size: 14px;
+      font-weight: 700;
+      color: #3a5bbf;
+      margin-bottom: 14px;
+      align-self: flex-start;
+    }
+
+    .choices-grid {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .choice-btn {
+      background: #fff;
+      border: 2.5px solid #a0b8f5;
+      border-radius: 14px;
+      padding: 10px 8px;
+      font-size: 14px;
+      font-weight: 800;
+      font-family: 'Nunito', sans-serif;
+      color: #1a2a5e;
+      cursor: pointer;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(74,111,212,0.08);
+      transition: all 0.15s ease;
+    }
+
+    .choice-btn.correct {
+      background: #d4f5d4;
+      border-color: #4caf50;
+    }
+
+    .choice-btn.wrong {
+      background: #fde0dc;
+      border-color: #ef5350;
+    }
+
+    .choice-btn.dimmed { opacity: 0.45; }
+
+    .feedback-wrap {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .feedback {
+      font-size: 18px;
+      font-weight: 900;
+      padding: 10px 24px;
+      border-radius: 12px;
+    }
+
+    .feedback.correct-msg { color: #2e7d32; background: #e8f5e9; }
+    .feedback.wrong-msg   { color: #c62828; background: #ffebee; }
+
+    .next-btn {
+      background: linear-gradient(135deg, #6a8fe8, #4a6fd4);
+      border: none;
+      border-radius: 14px;
+      padding: 14px 36px;
+      font-size: 17px;
+      font-weight: 900;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+
+<body>
+<div id="app"></div>
+
+<script>
+const terms = [
+  { word: "hyperbole", definition: "An extreme exaggeration." },
+  { word: "metaphor", definition: "Compares two things by saying one thing is another — does not use LIKE or AS." },
+  { word: "personification", definition: "Giving an animal or object human-like words or actions." },
+  { word: "onomatopoeia", definition: "Words that represent sound." },
+  { word: "line", definition: "A single line of poetry in a poem." },
+  { word: "stanza", definition: "A group of lines in a poem." },
+  { word: "free verse", definition: "Poetry with no rhyme or rhythm pattern." },
+  { word: "rhymed verse", definition: "Poetry with a rhyme pattern." },
+  { word: "haiku", definition: "A 3-line poem with 5-7-5 syllables." },
+  { word: "limerick", definition: "A funny 5-line poem with AABBA rhyme." }
+];
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+let deck, index, score, selected;
+
+function init() {
+  deck = shuffle(terms);
+  index = 0;
+  score = 0;
+  selected = null;
+  render();
+}
+
+function handlePick(word) {
+  if (selected) return;
+  selected = word;
+  const card = deck[index];
+
+  document.querySelectorAll('.choice-btn').forEach(btn => {
+    if (btn.dataset.word === card.word) btn.classList.add('correct');
+    else if (btn.dataset.word === word) btn.classList.add('wrong');
+    else btn.classList.add('dimmed');
+    btn.disabled = true;
+  });
+
+  if (word === card.word) score++;
+
+  document.querySelector('.score-badge').textContent = `⭐ ${score} / ${deck.length}`;
+  document.querySelector('.feedback-wrap').classList.remove('hidden');
+}
+
+function nextCard() {
+  index++;
+  selected = null;
+  render();
+}
+
+function render() {
+  const card = deck[index];
+  const choices = shuffle(terms).map(t => t.word);
+
+  document.getElementById('app').innerHTML = `
+    <div class="header">
+      <div class="logo">📖 Key Literacy Terms 4</div>
+      <div class="score-badge">⭐ ${score} / ${deck.length}</div>
+    </div>
+
+    <div class="progress-wrap">
+      <div class="progress-bar" style="width:${(index / deck.length) * 100}%"></div>
+    </div>
+
+    <div class="progress-label">Card ${index + 1} of ${deck.length}</div>
+
+    <div class="def-card">
+      <div class="def-label">DEFINITION</div>
+      <p class="def-text">${card.definition}</p>
+    </div>
+
+    <div class="bank-label">Which word matches this definition?</div>
+
+    <div class="choices-grid">
+      ${choices.map(w => `<button class="choice-btn" data-word="${w}" onclick="handlePick('${w}')">${w}</button>`).join('')}
+    </div>
+
+    <div class="feedback-wrap hidden">
+      <div class="feedback">Tap next to continue</div>
+      <button class="next-btn" onclick="nextCard()">Next →</button>
+    </div>
+  `;
+}
+
+init();
+</script>
+</body>
+</html>

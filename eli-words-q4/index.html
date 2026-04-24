@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Fourth Quarter Word Check</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --green: #06D6A0;
+    --red: #EF476F;
+    --navy: #073B4C;
+    --yellow: #FFD166;
+    --purple: #6C3FC5;
+    --bg1: #c7f0ff;
+    --bg2: #e8f7ff;
+    --bg3: #d4f5e5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    min-height: 100vh;
+    background: linear-gradient(145deg, var(--bg1) 0%, var(--bg2) 50%, var(--bg3) 100%);
+    font-family: 'Nunito', sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px 16px 40px;
+    overflow-x: hidden;
+  }
+
+  /* Decorative stars */
+  .star {
+    position: fixed;
+    font-size: 1.4rem;
+    opacity: 0.18;
+    pointer-events: none;
+    animation: twinkle 3s ease-in-out infinite;
+  }
+  @keyframes twinkle {
+    0%,100% { opacity: 0.12; transform: scale(1); }
+    50%      { opacity: 0.28; transform: scale(1.15); }
+  }
+
+  h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(2rem, 6vw, 2.8rem);
+    color: var(--navy);
+    text-align: center;
+    margin-bottom: 2px;
+    text-shadow: 0 2px 0 rgba(7,59,76,0.07);
+  }
+  .subtitle {
+    font-size: 0.88rem;
+    color: #3a7d8a;
+    font-weight: 700;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  /* Progress */
+  .progress-wrap {
+    width: 100%;
+    max-width: 440px;
+    background: rgba(255,255,255,0.55);
+    border-radius: 99px;
+    height: 13px;
+    margin-bottom: 6px;
+    overflow: hidden;
+    box-shadow: inset 0 2px 5px rgba(0,0,0,0.08);
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green) 0%, #38d9f5 100%);
+    border-radius: 99px;
+    transition: width 0.45s cubic-bezier(.4,0,.2,1);
+    width: 0%;
+  }
+  .progress-label {
+    font-size: 0.78rem;
+    color: #3a7d8a;
+    font-weight: 800;
+    margin-bottom: 18px;
+    text-align: center;
+    letter-spacing: 0.3px;
+  }
+
+  /* Scores */
+  .score-row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .score-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: white;
+    border-radius: 99px;
+    padding: 6px 18px;
+    font-weight: 900;
+    font-size: 1rem;
+    box-shadow: 0 4px 14px rgba(7,59,76,0.1);
+  }
+  .score-pill.c { color: var(--green); }
+  .score-pill.w { color: var(--red); }
+
+  /* Card */
+  .card-outer { margin-bottom: 24px; }
+  .card {
+    width: clamp(270px, 82vw, 390px);
+    height: 195px;
+    background: white;
+    border-radius: 30px;
+    box-shadow: 0 14px 44px rgba(7,59,76,0.14);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border: 3.5px solid rgba(6,214,160,0.15);
+    transition: border-color 0.3s, box-shadow 0.3s, transform 0.2s;
+    animation: cardIn 0.5s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes cardIn {
+    from { opacity: 0; transform: scale(0.78) translateY(30px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  .card.listening {
+    border-color: rgba(108,63,197,0.5);
+    box-shadow: 0 14px 44px rgba(108,63,197,0.18), 0 0 0 7px rgba(108,63,197,0.07);
+    transform: scale(1.02);
+  }
+  .card.success {
+    border-color: var(--green);
+    box-shadow: 0 14px 44px rgba(6,214,160,0.38);
+  }
+  .card.fail {
+    border-color: var(--red);
+    box-shadow: 0 14px 44px rgba(239,71,111,0.28);
+  }
+
+  .card-word {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(3rem, 11vw, 4.6rem);
+    color: var(--navy);
+    letter-spacing: 1px;
+    user-select: none;
+    transition: color 0.25s;
+  }
+  .card.success .card-word { color: var(--green); }
+  .card.fail    .card-word { color: var(--red); }
+
+  .card-num {
+    position: absolute;
+    top: 14px; right: 18px;
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #b0d8e4;
+    letter-spacing: 0.5px;
+  }
+
+  .heard-text {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #a0c4cc;
+    min-height: 1.3em;
+    margin-top: 8px;
+    text-align: center;
+    font-style: italic;
+    transition: color 0.2s;
+    max-width: clamp(270px, 82vw, 390px);
+    padding: 0 8px;
+  }
+  .heard-text.got    { color: #059669; }
+  .heard-text.missed { color: var(--red); }
+
+  /* Mic */
+  .mic-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+  .mic-btn {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, var(--purple) 0%, #4a28a0 100%);
+    color: white;
+    box-shadow: 0 8px 26px rgba(108,63,197,0.48);
+    transition: transform 0.14s, box-shadow 0.14s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mic-btn:hover  { transform: scale(1.07); }
+  .mic-btn:active { transform: scale(0.9); }
+  .mic-btn.recording {
+    background: linear-gradient(135deg, #d62828, var(--red));
+    box-shadow: 0 8px 26px rgba(239,71,111,0.55);
+    animation: micPulse 0.9s ease-in-out infinite;
+  }
+  .mic-btn.disabled {
+    background: #ccc;
+    box-shadow: none;
+    cursor: default;
+  }
+  @keyframes micPulse {
+    0%,100% { box-shadow: 0 8px 26px rgba(239,71,111,0.5); }
+    50%      { box-shadow: 0 8px 38px rgba(239,71,111,0.75), 0 0 0 12px rgba(239,71,111,0.1); }
+  }
+  .mic-label {
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #4a7a8a;
+    text-align: center;
+    min-height: 1.3em;
+  }
+
+  /* Override row */
+  .override-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 18px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .override-row.visible { opacity: 1; pointer-events: auto; }
+  .obtn {
+    border: none;
+    border-radius: 99px;
+    padding: 8px 20px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 800;
+    font-size: 0.83rem;
+    cursor: pointer;
+    transition: transform 0.12s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .obtn:active { transform: scale(0.91); }
+  .obtn.ok   { background: #e0fdf4; color: #059669; border: 2px solid #6ee7b7; }
+  .obtn.bad  { background: #fff0f3; color: var(--red); border: 2px solid #fda4af; }
+  .obtn.skip { background: white; color: var(--navy); border: 2px solid #c8e8f5; }
+
+  /* Feedback */
+  .feedback {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%,-50%) scale(0.5);
+    font-size: 6rem;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 99;
+  }
+  .feedback.show { animation: fbPop 0.65s forwards; }
+  @keyframes fbPop {
+    0%   { opacity:1; transform:translate(-50%,-50%) scale(1); }
+    60%  { opacity:1; transform:translate(-50%,-50%) scale(1.4); }
+    100% { opacity:0; transform:translate(-50%,-50%) scale(0.8); }
+  }
+
+  /* Browser warning */
+  .warn-box {
+    background: #fff8e1;
+    border: 2px solid #ffc107;
+    border-radius: 16px;
+    padding: 14px 20px;
+    text-align: center;
+    color: #7a5800;
+    font-weight: 700;
+    font-size: 0.88rem;
+    max-width: 380px;
+    margin-bottom: 18px;
+    display: none;
+    line-height: 1.5;
+  }
+
+  /* Results */
+  .results {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    animation: cardIn 0.5s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  .results h2 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.3rem;
+    color: var(--navy);
+    text-align: center;
+  }
+  .res-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    width: 100%;
+    max-width: 380px;
+  }
+  .res-box {
+    background: white;
+    border-radius: 20px;
+    padding: 18px 12px;
+    text-align: center;
+    box-shadow: 0 6px 22px rgba(7,59,76,0.1);
+  }
+  .res-box .big { font-family:'Fredoka One',cursive; font-size:2.8rem; }
+  .res-box .lbl { font-size:0.8rem; font-weight:800; color:#88aab5; margin-top:3px; }
+  .res-box.c .big { color: var(--green); }
+  .res-box.w .big { color: var(--red); }
+
+  .missed-box {
+    background: white;
+    border-radius: 20px;
+    padding: 18px 20px;
+    box-shadow: 0 6px 22px rgba(7,59,76,0.1);
+    width: 100%;
+    max-width: 380px;
+  }
+  .missed-box h3 {
+    font-family:'Fredoka One',cursive;
+    color: var(--red);
+    font-size:1.05rem;
+    margin-bottom:10px;
+  }
+  .missed-tags { display:flex; flex-wrap:wrap; gap:7px; }
+  .m-tag {
+    background:#fff0f3;
+    color:var(--red);
+    border:1.5px solid #fecdd3;
+    border-radius:99px;
+    padding:4px 14px;
+    font-weight:800;
+    font-size:0.88rem;
+  }
+
+  .restart-btn {
+    background: linear-gradient(135deg, var(--yellow), #f59e0b);
+    color: var(--navy);
+    border: none;
+    border-radius: 99px;
+    padding: 14px 38px;
+    font-family:'Fredoka One',cursive;
+    font-size:1.2rem;
+    cursor: pointer;
+    box-shadow: 0 6px 22px rgba(255,209,102,0.55);
+    transition: transform 0.13s;
+    margin-top: 6px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .restart-btn:hover  { transform: scale(1.06); }
+  .restart-btn:active { transform: scale(0.94); }
+</style>
+</head>
+<body>
+
+<!-- Stars -->
+<span class="star" style="top:8%;left:5%;animation-delay:0s">⭐</span>
+<span class="star" style="top:14%;right:7%;animation-delay:1.1s">✨</span>
+<span class="star" style="top:55%;left:3%;animation-delay:0.6s">⭐</span>
+<span class="star" style="top:70%;right:4%;animation-delay:1.8s">✨</span>
+
+<h1>🎤 Say the Word!</h1>
+<p class="subtitle">Fourth Quarter High Frequency Words</p>
+
+<div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+<p class="progress-label" id="progressLabel">0 / 36</p>
+
+<div class="score-row">
+  <div class="score-pill c">✅ <span id="cCount">0</span></div>
+  <div class="score-pill w">❌ <span id="wCount">0</span></div>
+</div>
+
+<div class="warn-box" id="warnBox"></div>
+
+<!-- Game -->
+<div id="gameArea" style="display:flex;flex-direction:column;align-items:center;width:100%">
+  <div class="card-outer">
+    <div class="card" id="card">
+      <span class="card-num"  id="cardNum"></span>
+      <span class="card-word" id="wordDisplay">—</span>
+    </div>
+  </div>
+  <p class="heard-text" id="heardText"> </p>
+
+  <div class="mic-wrap">
+    <button class="mic-btn" id="micBtn" onclick="toggleListen()">🎤</button>
+    <span class="mic-label" id="micLabel">Tap to speak</span>
+  </div>
+
+  <div class="override-row" id="overrideRow">
+    <button class="obtn ok"  onclick="overrideResult(true)">✓ Mark correct</button>
+    <button class="obtn bad" onclick="overrideResult(false)">✕ Mark wrong</button>
+    <button class="obtn skip" onclick="commitAndNext()">Next →</button>
+  </div>
+</div>
+
+<!-- Results -->
+<div class="results" id="resultsArea">
+  <h2>🎉 All Done!</h2>
+  <div class="res-grid">
+    <div class="res-box c"><div class="big" id="rC">0</div><div class="lbl">Got it ✅</div></div>
+    <div class="res-box w"><div class="big" id="rW">0</div><div class="lbl">Missed ❌</div></div>
+  </div>
+  <div class="missed-box" id="missedBox" style="display:none">
+    <h3>Keep practicing:</h3>
+    <div class="missed-tags" id="missedTags"></div>
+  </div>
+  <button class="restart-btn" onclick="restartGame()">🔁 Play Again</button>
+</div>
+
+<div class="feedback" id="feedback"></div>
+
+<script>
+const WORDS = [
+  "four","laugh","every","before","walk","does","better","mother","blue",
+  "great","move","near","done","buy","another","carry","father","answer",
+  "boy","change","school","about","only","wash","learn","never","eight",
+  "city","away","earth","even","through","some","very","below","any"
+];
+
+const ALTS = {
+  "four":["for","fore","4"],"eight":["ate","8"],"buy":["by","bye"],
+  "blue":["blew"],"some":["sum"],"through":["threw","thru"],
+  "earth":["ur"],"does":["duz"],"carry":["kerry"],"father":["farther"],
+  "every":["evry"],"before":["b4"],"school":["skool"],"about":["bout"],
+  "learn":["lern"],"answer":["anser"],"another":["anuther"],
+  "better":["beter"],"change":["chainge"],"laugh":["laf","laff"],
+  "great":["grate"],"move":["moove"],"done":["dun"],"any":["eny"],
+  "walk":["wok"],"away":["aweigh"],"very":["verry"],"boy":["boi"],
+  "never":["nevr"],"below":["b'low"],"even":["evan"],"wash":["wosh"],
+  "near":["neer"],"only":["onley"],"city":["citty"]
+};
+
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null, listening = false, resultPending = false, pendingOk = null;
+let deck=[], cur=0, correct=0, wrong=0, missed=[];
+let autoTimer = null;
+
+function shuffle(a){ a=[...a]; for(let i=a.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; }
+
+function restartGame(){
+  deck=shuffle(WORDS); cur=0; correct=0; wrong=0; missed=[];
+  resultPending=false; pendingOk=null; listening=false;
+  clearTimeout(autoTimer);
+  $('cCount').textContent=0; $('wCount').textContent=0;
+  $('resultsArea').style.display='none';
+  $('gameArea').style.display='flex';
+  resetUI(); showCard();
+}
+
+function $(id){ return document.getElementById(id); }
+
+function showCard(){
+  if(cur>=deck.length){ showResults(); return; }
+  resetUI();
+  const w=deck[cur];
+  const c=$('card');
+  c.style.animation='none'; c.offsetHeight; c.style.animation='';
+  $('wordDisplay').textContent=w;
+  $('cardNum').textContent=`${cur+1} / ${deck.length}`;
+  $('heardText').textContent=' ';
+  $('heardText').className='heard-text';
+  updateProgress();
+}
+
+function resetUI(){
+  $('card').className='card';
+  $('micBtn').className='mic-btn';
+  $('micLabel').textContent='Tap to speak';
+  $('overrideRow').className='override-row';
+  resultPending=false; pendingOk=null; listening=false;
+  clearTimeout(autoTimer);
+}
+
+function updateProgress(){
+  $('progressBar').style.width=(cur/deck.length*100)+'%';
+  $('progressLabel').textContent=`${cur} / ${deck.length}`;
+}
+
+function toggleListen(){
+  if(resultPending) return;
+  if(!SR){ showWarn('Speech recognition isn\'t supported in this browser. Try Chrome or Safari.'); return; }
+  if(listening){ rec && rec.stop(); return; }
+  startListening();
+}
+
+function startListening(){
+  rec = new SR();
+  rec.lang='en-US';
+  rec.interimResults=false;
+  rec.maxAlternatives=6;
+  listening=true;
+  $('micBtn').className='mic-btn recording';
+  $('micLabel').textContent='Listening…';
+  $('card').className='card listening';
+  $('heardText').textContent=' ';
+  $('overrideRow').className='override-row';
+
+  rec.onresult=(e)=>{
+    const alts=[];
+    for(let i=0;i<e.results[0].length;i++) alts.push(e.results[0][i].transcript.trim().toLowerCase());
+    judgeAnswer(alts);
+  };
+
+  rec.onerror=(e)=>{
+    listening=false;
+    $('card').className='card';
+    $('micBtn').className='mic-btn';
+    if(e.error==='no-speech'){
+      $('micLabel').textContent='Nothing heard — try again';
+    } else if(e.error==='not-allowed'||e.error==='permission-denied'){
+      $('micLabel').textContent='Mic blocked';
+      showWarn('Microphone access was blocked. Please allow mic access in your browser settings, then reload the page.');
+    } else {
+      $('micLabel').textContent='Try again';
+    }
+  };
+
+  rec.onend=()=>{
+    listening=false;
+    if(!resultPending){
+      $('card').className='card';
+      $('micBtn').className='mic-btn';
+    }
+  };
+
+  rec.start();
+}
+
+function judgeAnswer(alts){
+  const target=deck[cur].toLowerCase();
+  const accepted=[target,...(ALTS[target]||[])];
+  let matched=false, bestHeard=alts[0]||'';
+
+  for(const alt of alts){
+    const words=alt.replace(/[^a-z\s]/g,'').trim().split(/\s+/);
+    for(const acc of accepted){
+      if(words.includes(acc)){ matched=true; bestHeard=alt; break; }
+    }
+    if(matched) break;
+  }
+
+  $('heardText').textContent=`I heard: "${bestHeard}"`;
+  $('heardText').className='heard-text '+(matched?'got':'missed');
+  pendingOk=matched;
+  resultPending=true;
+
+  if(matched){
+    $('card').className='card success';
+    $('micLabel').textContent='✅ Great job!';
+    flash('⭐');
+  } else {
+    $('card').className='card fail';
+    $('micLabel').textContent='❌ Not quite — try again?';
+    flash('💪');
+  }
+  $('micBtn').className='mic-btn';
+  $('overrideRow').className='override-row visible';
+
+  // Auto-advance after 2.8s
+  autoTimer=setTimeout(()=>{ if(resultPending) commitAndNext(); }, 2800);
+}
+
+function overrideResult(ok){
+  clearTimeout(autoTimer);
+  pendingOk=ok;
+  commitAndNext();
+}
+
+function commitAndNext(){
+  clearTimeout(autoTimer);
+  if(!resultPending){ cur++; showCard(); return; }
+  if(pendingOk){
+    correct++;
+    $('cCount').textContent=correct;
+  } else {
+    wrong++;
+    $('wCount').textContent=wrong;
+    missed.push(deck[cur]);
+  }
+  resultPending=false;
+  cur++;
+  setTimeout(showCard,350);
+}
+
+function flash(emoji){
+  const el=$('feedback');
+  el.textContent=emoji;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+}
+
+function showWarn(msg){
+  const b=$('warnBox');
+  b.textContent=msg;
+  b.style.display='block';
+}
+
+function showResults(){
+  $('gameArea').style.display='none';
+  $('resultsArea').style.display='flex';
+  $('rC').textContent=correct;
+  $('rW').textContent=wrong;
+  $('progressBar').style.width='100%';
+  $('progressLabel').textContent=`${deck.length} / ${deck.length}`;
+  if(missed.length){
+    $('missedBox').style.display='block';
+    $('missedTags').innerHTML=missed.map(w=>`<span class="m-tag">${w}</span>`).join('');
+  } else {
+    $('missedBox').style.display='none';
+  }
+}
+
+if(!SR) showWarn('Speech recognition isn\'t supported here. Please open this in Chrome or Safari.');
+
+restartGame();
+</script>
+</body>
+</html>

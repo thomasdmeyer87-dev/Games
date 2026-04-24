@@ -1,82 +1,94 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Eli Sight Word Game</title>
+  <meta charset="UTF-8">
+  <title>Eli - ELA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="../assets/styles.css" />
+
+  <style>
+    .page-title {
+      text-align: center;
+      color: white;
+      margin-bottom: 20px;
+      font-size: 2.5rem;
+    }
+
+    .columns {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 700px) {
+      .columns {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .column {
+      background: rgba(255,255,255,0.95);
+      border-radius: 24px;
+      padding: 20px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    }
+
+    .column h2 {
+      text-align: center;
+      margin-bottom: 15px;
+    }
+
+    .game-button {
+      display: block;
+      width: 100%;
+      margin: 12px 0;
+      padding: 18px;
+      border-radius: 16px;
+      text-decoration: none;
+      color: white;
+      font-weight: bold;
+      font-size: 1.3rem;
+      text-align: center;
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+
+    .back {
+      display: block;
+      margin-top: 25px;
+      text-align: center;
+      color: white;
+      font-weight: bold;
+      text-decoration: none;
+    }
+  </style>
 </head>
+
 <body>
-  <main class="app-shell">
-    <section class="game-card">
-      <h1>Eli Sight Words</h1>
-      <p class="subtitle">Tap the word that matches the big word.</p>
 
-      <div class="score-row">
-        <span>Correct: <span id="correctCount">0</span></span>
-        <span>Try: <span id="tryCount">0</span></span>
-      </div>
+  <h1 class="page-title">Eli - ELA</h1>
 
-      <div class="word-display" id="targetWord">the</div>
-      <div class="option-grid" id="options"></div>
-      <p id="feedback" class="feedback"></p>
+  <div class="columns">
 
-      <div class="controls">
-        <button class="big-button orange" onclick="newRound()">Next Word</button>
-      </div>
+    <!-- High Frequency Words Column -->
+    <div class="column">
+      <h2>High Frequency Word Practice</h2>
 
-      <a class="small-link" href="../">Back to Practice Hub</a>
-    </section>
-  </main>
+      <a class="game-button" href="../eli-words-q4/index.html">
+        Fourth Quarter Word Check
+      </a>
+    </div>
 
-  <script>
-    const words = ["the", "and", "you", "said", "was", "for", "are", "with", "his", "they", "this", "have"];
-    let target = "";
-    let correct = 0;
-    let tries = 0;
+    <!-- Future Columns -->
+    <!--
+    <div class="column">
+      <h2>Reading</h2>
+      <a class="game-button" href="#">Coming Soon</a>
+    </div>
+    -->
 
-    function shuffle(array) {
-      return array.sort(() => Math.random() - 0.5);
-    }
+  </div>
 
-    function newRound() {
-      document.getElementById("feedback").textContent = "";
-      target = words[Math.floor(Math.random() * words.length)];
-      document.getElementById("targetWord").textContent = target;
+  <a class="back" href="../index.html">← Back</a>
 
-      let choices = [target];
-      while (choices.length < 4) {
-        const word = words[Math.floor(Math.random() * words.length)];
-        if (!choices.includes(word)) choices.push(word);
-      }
-
-      choices = shuffle(choices);
-      const options = document.getElementById("options");
-      options.innerHTML = "";
-
-      choices.forEach(word => {
-        const button = document.createElement("button");
-        button.className = "big-button purple";
-        button.textContent = word;
-        button.onclick = () => checkAnswer(word);
-        options.appendChild(button);
-      });
-    }
-
-    function checkAnswer(word) {
-      tries += 1;
-      document.getElementById("tryCount").textContent = tries;
-
-      if (word === target) {
-        correct += 1;
-        document.getElementById("correctCount").textContent = correct;
-        document.getElementById("feedback").textContent = "Great job!";
-      } else {
-        document.getElementById("feedback").textContent = "Try again.";
-      }
-    }
-
-    newRound();
-  </script>
 </body>
 </html>
