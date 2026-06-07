@@ -119,6 +119,20 @@ body {
 .row.disabled .tile { background: #c7c7cc !important; }
 .row.disabled .chev { visibility: hidden; }
 
+/* iPad and larger: two columns (one kid per column) */
+@media (min-width: 768px) {
+  .app-shell { max-width: 900px; }
+  .hero { padding-top: 34px; }
+  #kidList {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+    margin-top: 10px;
+  }
+  .kid-section { margin-top: 0; }
+}
+
 /* ============================================================
    Shared GAME components (used by the engines)
    ============================================================ */
