@@ -2,53 +2,84 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Homework Practice</title>
   <link rel="stylesheet" href="assets/styles.css" />
   <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#f2f2f7" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Practice" />
 </head>
 <body>
   <main class="app-shell">
-    <section class="hero">
+    <header class="hero">
       <h1 id="hubTitle">Homework Practice</h1>
-    </section>
-    <section class="kid-grid" id="kidGrid"></section>
+      <p class="sub" id="hubSub"></p>
+    </header>
+    <div id="kidList"></div>
   </main>
 
   <script src="data/manifest.js"></script>
   <script>
-    const COLORS = ["green", "blue", "purple", "orange"];
+    // Icon + color per game type
+    const ENGINE_ICON = { vocab: "📖", speak: "🗣️", math: "🔢" };
+    const ENGINE_TILE = {
+      vocab: "var(--tile-vocab)",
+      speak: "var(--tile-speak)",
+      math:  "var(--tile-math)"
+    };
 
     function activityHref(act) {
       return `engines/${encodeURIComponent(act.engine)}/index.html?set=${encodeURIComponent(act.set)}`;
     }
 
+    function row(act) {
+      const icon = ENGINE_ICON[act.engine] || "✏️";
+      const tile = ENGINE_TILE[act.engine] || "var(--tile-default)";
+      return `
+        <a class="row" href="${activityHref(act)}">
+          <span class="tile" style="background:${tile}">${icon}</span>
+          <span class="label">${act.title}</span>
+          <span class="chev">›</span>
+        </a>`;
+    }
+
+    function comingSoonRow(subjectName) {
+      return `
+        <div class="row disabled">
+          <span class="tile">🔒</span>
+          <span class="label">Coming soon</span>
+          <span class="chev">›</span>
+        </div>`;
+    }
+
     function render() {
       const m = window.MANIFEST || { kids: [] };
       document.getElementById("hubTitle").textContent = m.title || "Homework Practice";
+      document.getElementById("hubSub").textContent = "Pick something to practice.";
 
-      const grid = document.getElementById("kidGrid");
-      grid.innerHTML = (m.kids || []).map((kid, ki) => {
-        const color = COLORS[ki % COLORS.length];
-
+      document.getElementById("kidList").innerHTML = (m.kids || []).map(kid => {
         const subjects = (kid.subjects || []).map(sub => {
           const acts = sub.activities || [];
-          const body = acts.length
-            ? acts.map(a => `<a class="big-button ${color}" href="${activityHref(a)}">${a.title}</a>`).join("")
-            : `<p class="coming-soon">${sub.name} — coming soon</p>`;
+          const rows = acts.length
+            ? acts.map(row).join("")
+            : comingSoonRow(sub.name);
           return `
-            <div class="subject">
-              <h3 class="subject-title">${sub.name}</h3>
-              ${body}
-            </div>`;
+            <section class="subject">
+              <div class="subject-cap">${sub.name}</div>
+              <div class="list">${rows}</div>
+            </section>`;
         }).join("");
 
         return `
-          <article class="kid-card">
-            <h2>${kid.name}</h2>
-            ${kid.grade ? `<p class="kid-grade">${kid.grade}</p>` : ""}
+          <section class="kid-section">
+            <div class="kid-head">
+              <span class="name">${kid.name}</span>
+              ${kid.grade ? `<span class="grade">${kid.grade}</span>` : ""}
+            </div>
             ${subjects}
-          </article>`;
+          </section>`;
       }).join("");
     }
 
