@@ -24,6 +24,8 @@ window.MANIFEST = {
       id: "evan",
       name: "Evan",
       grade: "4th Grade",
+      avatar: "🦊",                  // tap-friendly identity — change freely
+      colors: ["#34d399", "#059669"], // theme gradient (light → dark)
       subjects: [
         {
           name: "ELA",
@@ -43,6 +45,8 @@ window.MANIFEST = {
       id: "eli",
       name: "Eli",
       grade: "2nd Grade",
+      avatar: "🐼",
+      colors: ["#60a5fa", "#4f46e5"],
       subjects: [
         {
           name: "ELA",

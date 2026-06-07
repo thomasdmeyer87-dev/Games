@@ -6,81 +6,105 @@
   <title>Homework Practice</title>
   <link rel="stylesheet" href="assets/styles.css" />
   <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#f2f2f7" />
+  <meta name="theme-color" content="#f7f8fc" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Practice" />
 </head>
 <body>
   <main class="app-shell">
-    <header class="hero">
+    <header class="home-head">
       <h1 id="hubTitle">Homework Practice</h1>
       <p class="sub" id="hubSub"></p>
     </header>
-    <div id="kidList"></div>
+    <div class="kid-grid" id="kidGrid"></div>
   </main>
 
   <script src="data/manifest.js"></script>
+  <script src="assets/progress.js"></script>
   <script>
-    // Icon + color per game type
-    const ENGINE_ICON = { vocab: "📖", speak: "🗣️", math: "🔢" };
-    const ENGINE_TILE = {
-      vocab: "var(--tile-vocab)",
-      speak: "var(--tile-speak)",
-      math:  "var(--tile-math)"
+    const ENGINE = {
+      vocab: { icon: "📖", bg: "var(--tile-vocab)" },
+      speak: { icon: "🗣️", bg: "var(--tile-speak)" },
+      math:  { icon: "🔢", bg: "var(--tile-math)" }
     };
 
-    function activityHref(act) {
+    function href(act) {
       return `engines/${encodeURIComponent(act.engine)}/index.html?set=${encodeURIComponent(act.set)}`;
     }
 
-    function row(act) {
-      const icon = ENGINE_ICON[act.engine] || "✏️";
-      const tile = ENGINE_TILE[act.engine] || "var(--tile-default)";
+    function starsMarkup(n) {
+      let s = "";
+      for (let i = 1; i <= 3; i++) s += `<span class="${i <= n ? "on" : "off"}">★</span>`;
+      return `<span class="stars">${s}</span>`;
+    }
+
+    function tile(kidId, act) {
+      const e = ENGINE[act.engine] || { icon: "✏️", bg: "var(--tile-vocab)" };
+      const p = window.Progress.getActivity(kidId, act.set);
+      const foot = p.plays > 0
+        ? `${starsMarkup(p.bestStars)}<span class="tile-best">Best ${p.bestPct}%</span>`
+        : `${starsMarkup(0)}<span class="tile-best">New</span>`;
       return `
-        <a class="row" href="${activityHref(act)}">
-          <span class="tile" style="background:${tile}">${icon}</span>
-          <span class="label">${act.title}</span>
-          <span class="chev">›</span>
+        <a class="tile" href="${href(act)}">
+          <div class="chip" style="background:${e.bg}">${e.icon}</div>
+          <div class="tile-title">${act.title}</div>
+          <div class="tile-foot">${foot}</div>
         </a>`;
     }
 
-    function comingSoonRow(subjectName) {
+    function lockedTile() {
       return `
-        <div class="row disabled">
-          <span class="tile">🔒</span>
-          <span class="label">Coming soon</span>
-          <span class="chev">›</span>
+        <div class="tile locked">
+          <div class="chip">🔒</div>
+          <div class="tile-title">Coming soon</div>
+          <div class="tile-foot"><span class="tile-best">In the works</span></div>
         </div>`;
+    }
+
+    function kidSection(kid) {
+      const c = kid.colors || ["#7c83ff", "#5b6cff"];
+      const pr = window.Progress.getKid(kid.id);
+      const lvl = pr.level;
+
+      const subjects = (kid.subjects || []).map(sub => {
+        const acts = sub.activities || [];
+        const body = acts.length ? acts.map(a => tile(kid.id, a)).join("") : lockedTile();
+        return `<div class="subj-cap">${sub.name}</div><div class="tiles">${body}</div>`;
+      }).join("");
+
+      return `
+        <section class="kid" style="--kc1:${c[0]}; --kc2:${c[1]}; --kc-shadow:${c[1]}55">
+          <div class="kid-hero">
+            <div class="kid-hero-top">
+              <div class="avatar">${kid.avatar || "🙂"}</div>
+              <div class="kid-meta">
+                <div class="kid-name">${kid.name}</div>
+                <div class="kid-grade">${kid.grade || ""}</div>
+              </div>
+              <div class="kid-stats">
+                <div class="stat-pill">🔥 ${pr.streak}</div>
+                <div class="stat-pill">⭐ ${pr.totalStars}</div>
+              </div>
+            </div>
+            <div class="xp">
+              <div class="xp-row"><span>Level ${lvl.num}</span><span>${lvl.inLevel}/${lvl.perLevel} ⭐</span></div>
+              <div class="xp-track"><div class="xp-fill" data-w="${lvl.pct}"></div></div>
+            </div>
+          </div>
+          ${subjects}
+        </section>`;
     }
 
     function render() {
       const m = window.MANIFEST || { kids: [] };
       document.getElementById("hubTitle").textContent = m.title || "Homework Practice";
-      document.getElementById("hubSub").textContent = "Pick something to practice.";
-
-      document.getElementById("kidList").innerHTML = (m.kids || []).map(kid => {
-        const subjects = (kid.subjects || []).map(sub => {
-          const acts = sub.activities || [];
-          const rows = acts.length
-            ? acts.map(row).join("")
-            : comingSoonRow(sub.name);
-          return `
-            <section class="subject">
-              <div class="subject-cap">${sub.name}</div>
-              <div class="list">${rows}</div>
-            </section>`;
-        }).join("");
-
-        return `
-          <section class="kid-section">
-            <div class="kid-head">
-              <span class="name">${kid.name}</span>
-              ${kid.grade ? `<span class="grade">${kid.grade}</span>` : ""}
-            </div>
-            ${subjects}
-          </section>`;
-      }).join("");
+      document.getElementById("hubSub").textContent = "Pick something to practice!";
+      document.getElementById("kidGrid").innerHTML = (m.kids || []).map(kidSection).join("");
+      // animate XP bars after paint
+      requestAnimationFrame(() => {
+        document.querySelectorAll(".xp-fill").forEach(el => { el.style.width = el.dataset.w + "%"; });
+      });
     }
 
     render();

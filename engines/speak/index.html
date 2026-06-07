@@ -103,8 +103,7 @@
   </div>
 
   <div class="results" id="resultsArea">
-    <div class="emoji">🎉</div>
-    <h2>All Done!</h2>
+    <div id="rewardTop"></div>
     <div class="res-grid">
       <div class="res-box c"><div class="big" id="rC">0</div><div class="lbl">Got it</div></div>
       <div class="res-box w"><div class="big" id="rW">0</div><div class="lbl">Missed</div></div>
@@ -121,8 +120,10 @@
 <div class="feedback" id="feedback"></div>
 
 <script src="../../assets/loader.js"></script>
+<script src="../../assets/progress.js"></script>
 <script>
 let WORDS = [], ALTS = {};
+let KID = null, SETID = null;
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
 let rec = null, listening = false, resultPending = false, pendingOk = null;
 let deck=[], cur=0, correct=0, wrong=0, missed=[];
@@ -221,12 +222,29 @@ function showResults(){
   $('gameArea').style.display='none'; $('resultsArea').style.display='block';
   $('rC').textContent=correct; $('rW').textContent=wrong;
   $('progressBar').style.width='100%'; $('progressLabel').textContent=`${deck.length} of ${deck.length}`;
+
+  const pct = deck.length ? Math.round(correct/deck.length*100) : 0;
+  const r = window.Progress ? window.Progress.record(KID, SETID, pct)
+                            : { stars:0, streak:0, totalStars:0, streakUp:false, isNewBest:false };
+  const head = r.stars>=3 ? "Amazing! 🏆" : r.stars===2 ? "Great job! 🎉" : r.stars===1 ? "Nice work! 👍" : "Keep going! 📚";
+  const bigStars = [1,2,3].map(i=>`<span class="big-star ${i<=r.stars?"on":""}">★</span>`).join("");
+  const chips = [
+    r.streakUp ? `<div class="reward-chip fire">🔥 ${r.streak}-day streak</div>` : "",
+    r.isNewBest ? `<div class="reward-chip new">⭐ New best!</div>` : "",
+    `<div class="reward-chip">⭐ ${r.totalStars} total</div>`
+  ].join("");
+  $('rewardTop').innerHTML = `
+    <div class="reward-stars">${bigStars}</div>
+    <div class="headline" style="font-size:28px;font-weight:900;letter-spacing:-0.02em;margin:2px 0 4px;">${head}</div>
+    <div class="pct" style="font-size:15px;font-weight:800;color:var(--text-2);">${correct} of ${deck.length} · ${pct}%</div>
+    <div class="reward-chips">${chips}</div>`;
+
   if(missed.length){ $('missedBox').style.display='block'; $('missedTags').innerHTML=missed.map(w=>`<span class="m-tag">${w}</span>`).join(''); }
   else { $('missedBox').style.display='none'; }
 }
 
-GameLoader.loadSet("../../").then(({ data, title }) => {
-  document.title = title; $('subtitle').textContent = title;
+GameLoader.loadSet("../../").then(({ data, title, kidId, id }) => {
+  document.title = title; $('subtitle').textContent = title; KID = kidId; SETID = id;
   WORDS = (data.words || []).filter(Boolean); ALTS = data.alts || {};
   if(!WORDS.length) throw new Error("This activity has no words yet.");
   if(!SR) showWarn("Speech recognition isn't supported here. Please open in Chrome or Safari.");

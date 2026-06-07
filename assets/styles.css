@@ -1,240 +1,184 @@
 /* ============================================================
-   Shared design system — clean, iOS-style.
-   Used by the home screen and (via the same variables) the games.
+   Playful design system — friendly, gamified, polished.
+   Shared by the home screen and the game engines.
    ============================================================ */
 
 :root {
-  --bg: #f2f2f7;            /* iOS grouped background */
+  --bg-1: #f7f8fc;
+  --bg-2: #eceefa;
   --card: #ffffff;
-  --text: #1c1c1e;
-  --text-2: #8e8e93;        /* secondary gray */
-  --separator: rgba(60, 60, 67, 0.13);
-  --accent: #007aff;        /* iOS blue */
-  --row-press: #e5e5ea;
-  --radius: 16px;
-  --shadow: 0 1px 2px rgba(0,0,0,0.05), 0 10px 30px rgba(0,0,0,0.05);
+  --text: #1f2330;
+  --text-2: #7a8096;
+  --separator: rgba(40, 44, 70, 0.08);
+  --accent: #5b6cff;
+  --gold: #ffc53d;
+  --radius: 22px;
+  --radius-sm: 16px;
+  --shadow: 0 2px 6px rgba(30, 34, 70, 0.06), 0 16px 36px rgba(30, 34, 70, 0.08);
+  --shadow-sm: 0 2px 10px rgba(30, 34, 70, 0.07);
 
-  --tile-vocab: #5856d6;    /* indigo */
-  --tile-speak: #ff2d55;    /* pink   */
-  --tile-math:  #ff9500;    /* orange */
-  --tile-default: #34c759;  /* green  */
+  --tile-vocab: linear-gradient(135deg, #7c83ff, #5b6cff);
+  --tile-speak: linear-gradient(135deg, #ff7eb3, #ff4d8d);
+  --tile-math:  linear-gradient(135deg, #ffb15c, #ff8a3d);
+  --tile-lock:  #c9ccd8;
+
+  --font: ui-rounded, "SF Pro Rounded", "Nunito", system-ui, -apple-system,
+          "Segoe UI", Roboto, sans-serif;
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 
 body {
-  background: var(--bg);
+  background: linear-gradient(180deg, var(--bg-1), var(--bg-2));
+  background-attachment: fixed;
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI",
-               Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font);
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  /* keep clear of the notch / home indicator */
   padding: env(safe-area-inset-top) env(safe-area-inset-right)
            env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
-.app-shell {
-  width: 100%;
-  max-width: 560px;
-  margin: 0 auto;
-  padding: 8px 18px 48px;
-}
+/* ---------------- Home screen ---------------- */
 
-/* Large title, like an iOS app */
-.hero { padding: 26px 6px 6px; }
-.hero h1 {
-  font-size: 34px;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  margin: 0;
-}
-.hero .sub {
-  margin: 4px 0 0;
-  color: var(--text-2);
-  font-size: 15px;
-  font-weight: 500;
-}
+.app-shell { width: 100%; max-width: 560px; margin: 0 auto; padding: 14px 18px 56px; }
 
-/* One section per kid */
-.kid-section { margin-top: 30px; }
-.kid-head {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 0 6px 12px;
-}
-.kid-head .name { font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
-.kid-head .grade { font-size: 14px; font-weight: 600; color: var(--text-2); }
+.home-head { padding: 14px 4px 8px; }
+.home-head h1 { font-size: 30px; font-weight: 800; letter-spacing: -0.02em; margin: 0; }
+.home-head .sub { margin: 3px 0 0; color: var(--text-2); font-size: 15px; font-weight: 600; }
 
-.subject { margin-bottom: 20px; }
-.subject-cap {
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-2);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 0 16px 7px;
-}
+.kid { margin-top: 26px; animation: rise 0.5s cubic-bezier(.22,1,.36,1) both; }
 
-/* Inset grouped list */
-.list {
-  background: var(--card);
+/* Kid identity banner (colored, themed per kid) */
+.kid-hero {
+  position: relative;
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  padding: 18px 18px 20px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--kc1), var(--kc2));
+  box-shadow: 0 14px 30px var(--kc-shadow);
   overflow: hidden;
 }
+.kid-hero::after {  /* soft glow accent */
+  content: ""; position: absolute; top: -40px; right: -30px;
+  width: 150px; height: 150px; border-radius: 50%;
+  background: rgba(255,255,255,0.16);
+}
+.kid-hero-top { display: flex; align-items: center; gap: 13px; position: relative; z-index: 1; }
+.avatar {
+  width: 54px; height: 54px; border-radius: 50%;
+  background: rgba(255,255,255,0.22);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 30px; flex: none;
+  box-shadow: inset 0 0 0 2px rgba(255,255,255,0.35);
+}
+.kid-name { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.1; }
+.kid-grade { font-size: 13px; font-weight: 700; opacity: 0.85; }
+.kid-meta { flex: 1; min-width: 0; }
+.kid-stats { display: flex; gap: 8px; }
+.stat-pill {
+  background: rgba(255,255,255,0.22);
+  border-radius: 999px; padding: 6px 12px;
+  font-size: 14px; font-weight: 800; white-space: nowrap;
+  backdrop-filter: blur(4px);
+}
 
-.row {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  padding: 13px 14px;
-  text-decoration: none;
-  color: var(--text);
-  font-size: 17px;
-  font-weight: 500;
+.xp { margin-top: 15px; position: relative; z-index: 1; }
+.xp-row { display: flex; justify-content: space-between; font-size: 12.5px; font-weight: 800; opacity: 0.95; margin-bottom: 5px; }
+.xp-track { height: 9px; background: rgba(255,255,255,0.28); border-radius: 999px; overflow: hidden; }
+.xp-fill { height: 100%; width: 0; background: #fff; border-radius: 999px; box-shadow: 0 0 10px rgba(255,255,255,0.6); transition: width 0.7s cubic-bezier(.22,1,.36,1); }
+
+/* Subject caption */
+.subj-cap {
+  font-size: 12.5px; font-weight: 800; letter-spacing: 0.06em;
+  color: var(--text-2); text-transform: uppercase;
+  margin: 18px 6px 10px;
+}
+
+/* Activity tiles */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+
+.tile {
+  display: block; text-decoration: none; color: var(--text);
+  background: var(--card); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm); padding: 15px;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.12s ease;
+  transition: transform 0.14s cubic-bezier(.34,1.56,.64,1), box-shadow 0.14s ease;
 }
-.row + .row { border-top: 1px solid var(--separator); }
-.row:active { background: var(--row-press); }
+.tile:active { transform: scale(0.96); }
 
-.row .tile {
-  flex: none;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  color: #fff;
+.chip {
+  width: 42px; height: 42px; border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; color: #fff; margin-bottom: 12px;
+  box-shadow: 0 6px 14px rgba(40,44,70,0.18);
 }
-.row .label { flex: 1; }
-.row .chev { color: #c4c4c8; font-size: 17px; font-weight: 700; }
+.tile-title { font-size: 16px; font-weight: 800; line-height: 1.2; letter-spacing: -0.01em; }
 
-.row.disabled { color: var(--text-2); }
-.row.disabled .tile { background: #c7c7cc !important; }
-.row.disabled .chev { visibility: hidden; }
+.tile-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+.stars { font-size: 15px; letter-spacing: 1px; }
+.stars .on { color: var(--gold); }
+.stars .off { color: #e2e4ee; }
+.tile-best { font-size: 12px; font-weight: 800; color: var(--text-2); }
 
-/* iPad and larger: two columns (one kid per column) */
+.tile.locked {
+  background: rgba(255,255,255,0.55);
+  box-shadow: none; border: 2px dashed #d3d6e2;
+  color: var(--text-2);
+}
+.tile.locked .chip { background: var(--tile-lock); box-shadow: none; }
+.tile.locked:active { transform: none; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+/* iPad and up: two kids side by side */
 @media (min-width: 768px) {
-  .app-shell { max-width: 900px; }
-  .hero { padding-top: 34px; }
-  #kidList {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 28px;
-    align-items: start;
-    margin-top: 10px;
-  }
-  .kid-section { margin-top: 0; }
+  .app-shell { max-width: 920px; }
+  .home-head h1 { font-size: 34px; }
+  .kid-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
+  .kid { margin-top: 8px; }
 }
 
 /* ============================================================
-   Shared GAME components (used by the engines)
+   Shared GAME components (engines)
    ============================================================ */
 
-.game-shell {
-  width: 100%;
-  max-width: 560px;
-  margin: 0 auto;
-  padding: 6px 18px 40px;
-}
+.game-shell { width: 100%; max-width: 560px; margin: 0 auto; padding: 8px 18px 44px; }
 
-/* iOS-style nav bar */
-.nav-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 44px;
-  margin-bottom: 6px;
-}
-.nav-back {
-  color: var(--accent);
-  text-decoration: none;
-  font-size: 17px;
-  font-weight: 500;
-  white-space: nowrap;
-  -webkit-tap-highlight-color: transparent;
-}
-.nav-title {
-  flex: 1;
-  text-align: center;
-  font-size: 17px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  padding: 0 6px;
-}
-.nav-right {
-  min-width: 56px;
-  text-align: right;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-2);
-}
+.nav-bar { display: flex; align-items: center; gap: 8px; height: 46px; margin-bottom: 6px; }
+.nav-back { color: var(--accent); text-decoration: none; font-size: 17px; font-weight: 800; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
+.nav-title { flex: 1; text-align: center; font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 6px; }
+.nav-right { min-width: 56px; text-align: right; font-size: 15px; font-weight: 800; color: var(--text-2); }
 
-/* Progress */
-.progress-track {
-  height: 6px;
-  background: #e4e4ea;
-  border-radius: 99px;
-  overflow: hidden;
-  margin: 6px 2px 6px;
-}
-.progress-fill {
-  height: 100%;
-  width: 0%;
-  background: var(--accent);
-  border-radius: 99px;
-  transition: width 0.35s ease;
-}
-.progress-cap {
-  font-size: 13px;
-  color: var(--text-2);
-  font-weight: 500;
-  margin: 0 2px 20px;
-}
+.progress-track { height: 8px; background: #e4e6f2; border-radius: 999px; overflow: hidden; margin: 6px 2px; }
+.progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), #8b97ff); border-radius: 999px; transition: width 0.35s ease; }
+.progress-cap { font-size: 13px; color: var(--text-2); font-weight: 700; margin: 0 2px 20px; }
 
-/* Card surface */
-.card {
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: 22px;
-}
+.card { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; }
 
-/* Buttons */
 .btn-primary {
-  display: block;
-  width: 100%;
-  border: none;
-  border-radius: 14px;
-  background: var(--accent);
-  color: #fff;
-  font-size: 17px;
-  font-weight: 600;
-  padding: 15px;
-  font-family: inherit;
-  cursor: pointer;
-  -webkit-tap-highlight-color: transparent;
-  transition: filter 0.12s ease, transform 0.12s ease;
+  display: block; width: 100%; border: none; border-radius: 16px;
+  background: linear-gradient(135deg, #6d7bff, var(--accent)); color: #fff;
+  font-size: 17px; font-weight: 800; padding: 16px; font-family: inherit; cursor: pointer;
+  box-shadow: 0 8px 20px rgba(91,108,255,0.35);
+  -webkit-tap-highlight-color: transparent; transition: filter 0.12s, transform 0.12s;
 }
-.btn-primary:active { filter: brightness(0.93); transform: scale(0.99); }
+.btn-primary:active { filter: brightness(0.95); transform: scale(0.98); }
 
-.btn-text {
-  display: inline-block;
-  color: var(--accent);
-  background: none;
-  border: none;
-  font-family: inherit;
-  font-size: 17px;
-  font-weight: 500;
-  cursor: pointer;
-  padding: 10px;
-  text-decoration: none;
-}
+.btn-text { display: inline-block; color: var(--accent); background: none; border: none; font-family: inherit; font-size: 16px; font-weight: 800; cursor: pointer; padding: 10px; text-decoration: none; }
+
+/* Reward / celebration block (engine results) */
+.reward { text-align: center; }
+.reward .headline { font-size: 30px; font-weight: 900; letter-spacing: -0.02em; margin: 4px 0 2px; }
+.reward .pct { font-size: 16px; font-weight: 800; color: var(--text-2); }
+.reward-stars { display: flex; justify-content: center; gap: 10px; margin: 14px 0 8px; }
+.big-star { font-size: 50px; filter: grayscale(1) opacity(0.35); transform: scale(0.6); }
+.big-star.on { filter: none; animation: starPop 0.5s cubic-bezier(.34,1.8,.5,1) forwards; }
+.big-star.on:nth-child(2) { animation-delay: 0.15s; }
+.big-star.on:nth-child(3) { animation-delay: 0.3s; }
+@keyframes starPop { 0%{transform:scale(0.3) rotate(-25deg);opacity:0;} 60%{transform:scale(1.25) rotate(8deg);opacity:1;} 100%{transform:scale(1) rotate(0);opacity:1;} }
+
+.reward-chips { display: flex; justify-content: center; gap: 10px; margin: 12px 0 22px; flex-wrap: wrap; }
+.reward-chip { background: #f1f2fb; border-radius: 999px; padding: 8px 16px; font-size: 14px; font-weight: 800; color: var(--text); }
+.reward-chip.fire { background: #fff1e6; color: #e8702a; }
+.reward-chip.new  { background: #e9fbef; color: #18a957; }

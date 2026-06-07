@@ -48,14 +48,16 @@
 <main class="game-shell" id="app">Loading…</main>
 
 <script src="../../assets/loader.js"></script>
+<script src="../../assets/progress.js"></script>
 <script>
   const MAX_CHOICES = 6;
   let TITLE = "Vocabulary";
   let terms = [];
+  let KID = null, SETID = null, reward = null;
   let deck, index, score, selected, done;
 
   function shuffle(a){ return [...a].sort(() => Math.random() - 0.5); }
-  function init(){ deck = shuffle(terms); index = 0; score = 0; selected = null; done = false; render(); }
+  function init(){ deck = shuffle(terms); index = 0; score = 0; selected = null; done = false; reward = null; render(); }
   function current(){ return deck[index]; }
 
   function buildChoices(card){
@@ -90,7 +92,11 @@
   }
 
   function handleNext(){
-    if (index + 1 >= deck.length) done = true; else { index++; selected = null; }
+    if (index + 1 >= deck.length) {
+      done = true;
+      const pct = Math.round(score / deck.length * 100);
+      reward = window.Progress ? window.Progress.record(KID, SETID, pct) : { stars: 0, streak: 0, totalStars: 0 };
+    } else { index++; selected = null; }
     render();
   }
 
@@ -99,16 +105,22 @@
 
     if (done) {
       const pct = Math.round((score / deck.length) * 100);
-      const emoji = pct === 100 ? '🏆' : pct >= 70 ? '🎉' : '📚';
-      const msg = pct === 100 ? "Perfect score!" : pct >= 70 ? "Great job — keep it up!" : "Keep practicing, you've got this.";
+      const r = reward || { stars: 0, streak: 0, totalStars: 0, streakUp: false, isNewBest: false };
+      const head = r.stars >= 3 ? "Amazing! 🏆" : r.stars === 2 ? "Great job! 🎉" : r.stars === 1 ? "Nice work! 👍" : "Keep going! 📚";
+      const bigStars = [1,2,3].map(i => `<span class="big-star ${i <= r.stars ? "on" : ""}">★</span>`).join("");
+      const chips = [
+        r.streakUp ? `<div class="reward-chip fire">🔥 ${r.streak}-day streak</div>` : "",
+        r.isNewBest ? `<div class="reward-chip new">⭐ New best!</div>` : "",
+        `<div class="reward-chip">⭐ ${r.totalStars} total</div>`
+      ].join("");
       app.innerHTML = `
         <div class="nav-bar"><a class="nav-back" href="../../index.html">‹ Menu</a><div class="nav-title">${TITLE}</div><div class="nav-right"></div></div>
-        <div class="card done">
-          <div class="emoji">${emoji}</div>
-          <div class="pct">${pct}%</div>
-          <div class="score">${score} of ${deck.length} correct</div>
-          <div class="msg">${msg}</div>
-          <button class="btn-primary" onclick="init()">Try Again</button>
+        <div class="card reward">
+          <div class="reward-stars">${bigStars}</div>
+          <div class="headline">${head}</div>
+          <div class="pct">${score} of ${deck.length} correct · ${pct}%</div>
+          <div class="reward-chips">${chips}</div>
+          <button class="btn-primary" onclick="init()">Play Again</button>
           <div style="margin-top:10px"><a class="btn-text" href="../../index.html">Back to Menu</a></div>
         </div>`;
       return;
@@ -135,8 +147,8 @@
       <button class="btn-primary next-btn" style="display:none" onclick="handleNext()"></button>`;
   }
 
-  GameLoader.loadSet("../../").then(({ data, title }) => {
-    TITLE = title; document.title = title;
+  GameLoader.loadSet("../../").then(({ data, title, kidId, id }) => {
+    TITLE = title; document.title = title; KID = kidId; SETID = id;
     terms = (data.terms || []).filter(t => t && t.word && t.definition);
     if (!terms.length) throw new Error("This activity has no terms yet.");
     init();

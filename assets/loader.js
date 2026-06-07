@@ -25,11 +25,11 @@ window.GameLoader = {
     await this.loadScript(rootRel + "data/manifest.js");
     await this.loadScript(rootRel + "data/sets/" + id + ".js");
 
-    let meta = null;
+    let meta = null, kidId = null;
     (window.MANIFEST?.kids || []).forEach(kid =>
       (kid.subjects || []).forEach(sub =>
         (sub.activities || []).forEach(act => {
-          if (act.set === id) meta = act;
+          if (act.set === id) { meta = act; kidId = kid.id; }
         })
       )
     );
@@ -37,6 +37,6 @@ window.GameLoader = {
     const data = (window.SETS || {})[id];
     if (!data) throw new Error("No content found for: " + id);
 
-    return { id, data, meta, title: (meta && meta.title) || id };
+    return { id, data, meta, kidId, title: (meta && meta.title) || id };
   }
 };
