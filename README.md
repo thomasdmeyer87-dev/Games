@@ -61,3 +61,11 @@ manifest.json         iPad "add to home screen" app settings
 Math is intentionally just a "Coming soon" selection for now. The plan is to
 turn a photo of a practice worksheet into a math content file (a new engine
 plus `data/sets/...` files), so it drops into this same framework.
+
+## Conventions
+
+- **Keep the iOS-style look** defined in `assets/styles.css` — the shared design
+  system used by the home screen and all engines.
+- **Commit messages: no `Co-Authored-By:` trailer.** Commits are authored by the
+  user alone — write a normal message with no co-author line.
+- **Only commit or push when explicitly asked.**
