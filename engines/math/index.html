@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Math Practice Test</title>
+  <link rel="stylesheet" href="../../assets/styles.css" />
+  <meta name="theme-color" content="#f7f8fc" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <style>
+    /* ============================================================
+       The question area deliberately copies the look of the real
+       online test (plain white card, gray radio buttons, black
+       audio bar) so the format is familiar on test day. The menu
+       bar and the results screen keep the app's own playful style.
+       ============================================================ */
+
+    .test-surface {
+      background: #fff; border: 1px solid #e3e3e3; border-radius: 6px;
+      padding: 26px 24px 28px; margin-bottom: 18px;
+      font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    }
+    .verdict { font-size: 19px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+    .verdict.right { color: #157f3d; }
+    .verdict.wrong { color: #c0271c; }
+    .verdict svg { width: 20px; height: 20px; flex: none; }
+
+    /* ---- Black audio pill ---- */
+    .audio-bar {
+      display: inline-flex; align-items: center; gap: 11px;
+      background: #1c1c1c; border-radius: 8px; padding: 10px 14px;
+      margin-bottom: 14px; cursor: pointer; user-select: none;
+      -webkit-tap-highlight-color: transparent; border: none;
+      transition: filter 0.12s;
+    }
+    .audio-bar:active { filter: brightness(1.35); }
+    .audio-bar.sm { padding: 8px 12px; gap: 9px; margin-bottom: 8px; }
+    .ab-icon { width: 24px; height: 24px; flex: none; display: block; }
+    .audio-bar.sm .ab-icon { width: 21px; height: 21px; }
+    .ab-track { position: relative; width: 210px; height: 4px; background: #666; border-radius: 2px; flex: none; }
+    .audio-bar.sm .ab-track { width: 185px; }
+    .ab-knob {
+      position: absolute; top: 50%; left: 0; width: 13px; height: 13px;
+      margin-left: -6px; border-radius: 50%; background: #fff;
+      transform: translateY(-50%); transition: left 0.15s linear;
+    }
+    .no-voice { color: #999; font-size: 13px; margin-bottom: 12px; font-style: italic; }
+
+    /* ---- Question text ---- */
+    .q-text { font-size: 19px; line-height: 1.55; color: #1a1a1a; }
+    .q-text .ln { display: block; }
+    .q-figure {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 17px; line-height: 1.7; color: #1a1a1a;
+      margin: 14px 0 0; white-space: pre; overflow-x: auto;
+    }
+
+    /* ---- Choices (radio / checkbox, test style) ---- */
+    .choices { margin-top: 20px; }
+    .choice {
+      display: flex; align-items: center; gap: 14px; width: 100%;
+      padding: 9px 0; margin: 0;
+      font-size: 18px; color: #6b6b6b; text-align: left;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+    }
+    .choice:focus-visible { outline: 2px solid #3b82f6; outline-offset: 3px; border-radius: 4px; }
+    .choice.stacked { display: block; padding: 4px 0 12px; }
+    .choice.stacked .pick-row { display: flex; align-items: center; gap: 14px; }
+    .mark { width: 21px; height: 21px; flex: none; }
+    .mark circle, .mark rect { transition: fill 0.12s, stroke 0.12s; }
+    .choice-text { line-height: 1.4; }
+    .choice.on .choice-text { color: #1a1a1a; }
+    .choice.key .choice-text { color: #157f3d; font-weight: 600; }
+    .choice.miss .choice-text { color: #c0271c; }
+
+    /* ---- Drag-to-fill ---- */
+    .bank { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0 26px; }
+    .chip {
+      min-width: 104px; text-align: center; background: #fff;
+      border: 1px solid #c8c8c8; border-radius: 4px; padding: 13px 16px;
+      font-family: inherit; font-size: 18px; color: #4a4a4a;
+      cursor: grab; touch-action: none; user-select: none;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .chip.armed { border-color: #3b82f6; background: #eff6ff; color: #1a1a1a; }
+    .chip.ghost {
+      position: fixed; z-index: 99; pointer-events: none; opacity: 0.92;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.22); cursor: grabbing;
+    }
+    .drag-line { font-size: 19px; color: #1a1a1a; line-height: 2.6; }
+    .blank {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 118px; height: 50px; vertical-align: middle; margin: 0 6px;
+      background: #fff; border: 1px solid #c8c8c8; border-radius: 4px;
+      font-size: 18px; color: #4a4a4a; cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: border-color 0.12s, background 0.12s;
+    }
+    .blank.hot   { border-color: #3b82f6; background: #eff6ff; border-width: 2px; }
+    .blank.key   { color: #157f3d; font-weight: 600; border-color: #9ad0ae; }
+    .blank.miss  { color: #c0271c; border-color: #e6a9a3; }
+    .drag-hint { font-size: 14px; color: #8a8a8a; margin-top: 4px; }
+
+    /* ---- Question navigator + footer (app style) ---- */
+    .qnav { display: flex; flex-wrap: wrap; gap: 7px; margin: 2px 2px 16px; }
+    .qdot {
+      width: 30px; height: 30px; border-radius: 10px; border: none;
+      font-family: var(--font); font-size: 13px; font-weight: 800;
+      background: #e4e6f2; color: var(--text-2); cursor: pointer;
+      -webkit-tap-highlight-color: transparent; transition: transform 0.12s ease;
+    }
+    .qdot:active { transform: scale(0.92); }
+    .qdot.answered { background: linear-gradient(135deg, #ffb15c, #ff8a3d); color: #fff; }
+    .qdot.right    { background: linear-gradient(135deg, #5bd68a, #24a65a); color: #fff; }
+    .qdot.wrong    { background: linear-gradient(135deg, #ff8b80, #e0483a); color: #fff; }
+    .qdot.current  { box-shadow: 0 0 0 3px rgba(91,108,255,0.4); }
+
+    .test-foot { display: flex; gap: 10px; }
+    .btn-sec {
+      flex: none; min-width: 104px; border: none; border-radius: 16px;
+      background: #e8eaf4; color: var(--text-2); font-family: var(--font);
+      font-size: 17px; font-weight: 800; padding: 16px; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; transition: filter 0.12s, transform 0.12s;
+    }
+    .btn-sec:active:not(:disabled) { filter: brightness(0.96); transform: scale(0.98); }
+    .btn-sec:disabled { opacity: 0.4; cursor: default; }
+    .test-foot .btn-primary { margin: 0; }
+    .btn-primary.submit { background: linear-gradient(135deg, #ffb15c, #ff8a3d); box-shadow: 0 8px 20px rgba(255,138,61,0.38); }
+
+    .gap-note {
+      text-align: center; font-size: 14px; font-weight: 700; color: #b4741f;
+      background: #fff8e8; border-radius: 12px; padding: 11px 14px; margin-top: 14px;
+    }
+    .why {
+      font-size: 15px; line-height: 1.55; color: #5a5a5a;
+      background: #f6f7f9; border-left: 3px solid #c8c8c8;
+      border-radius: 0 4px 4px 0; padding: 12px 14px; margin-top: 20px;
+    }
+    .err { text-align: center; padding: 40px 24px; }
+    .err .emoji { font-size: 60px; }
+    .err .msg { font-size: 16px; color: var(--text-2); margin: 14px 0 20px; }
+
+    @media (max-width: 420px) {
+      .ab-track { width: 150px; }
+      .audio-bar.sm .ab-track { width: 130px; }
+      .test-surface { padding: 20px 16px 22px; }
+    }
+  </style>
+</head>
+<body>
+<main class="game-shell" id="app">Loading…</main>
+
+<script src="../../assets/loader.js"></script>
+<script src="../../assets/progress.js"></script>
+<script>
+  /* ============================================================
+     MATH PRACTICE TEST engine.
+
+     Built to mirror the online test Evan actually sits: same card
+     layout, same black "play" bar, same question types.
+
+       type: "choice"  one answer      -> answer: <index>
+       type: "multi"   select all      -> answers: [<index>, ...]
+       type: "drag"    drag to fill    -> bank + template + answers
+
+     Feedback is immediate. He answers a question, sees Correct or
+     Incorrect straight away with the right answer and a short why,
+     then moves on. Nothing is hidden until the end.
+
+     Every question can be read aloud with the browser's built-in
+     voice. Set  audioChoices: true  to put a play bar on each
+     answer choice too, the way the harder word problems do.
+     ============================================================ */
+
+  let TITLE = "Math Practice Test";
+  let questions = [];
+  let KID = null, SETID = null;
+  let answers = [], checked = [], index = 0, finished = false, reward = null;
+
+  const $ = id => document.getElementById(id);
+  const synth = window.speechSynthesis;
+
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+  const sameSet = (a, b) =>
+    a.length === b.length && [...a].sort().every((v, i) => v === [...b].sort()[i]);
+
+  /* ---------- Read aloud ---------------------------------------------------
+     speechSynthesis reads the text; the bar's knob tracks real progress
+     using word-boundary events, so it behaves like the test's player. */
+
+  let playingKey = null;
+
+  function speakable(s) {
+    return String(s)
+      .replace(/\s*≥\s*/g, " is greater than or equal to ")
+      .replace(/\s*≤\s*/g, " is less than or equal to ")
+      .replace(/\s*≠\s*/g, " is not equal to ")
+      .replace(/\s*×\s*/g, " times ")
+      .replace(/\s*÷\s*/g, " divided by ")
+      .replace(/\s*[−–]\s*/g, " minus ")
+      .replace(/\s*\+\s*/g, " plus ")
+      .replace(/\s*=\s*/g, " equals ")
+      .replace(/\s*<\s*/g, " is less than ")
+      .replace(/\s*>\s*/g, " is greater than ")
+      .replace(/(\d)\s*\/\s*(\d)/g, "$1 over $2")
+      .replace(/_{2,}/g, " blank ")
+      .replace(/\{\d+\}/g, " blank ")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
+
+  function textFor(q, key) {
+    if (key.startsWith("c")) return speakable(q.choices[Number(key.slice(1))]);
+    const parts = [speakable(q.prompt)];
+    if (q.figure) parts.push(speakable(q.figure));
+    if (q.template) parts.push(q.template.map(speakable).join(". "));
+    return parts.join(". ");
+  }
+
+  function stopSpeech() {
+    if (synth) synth.cancel();
+    playingKey = null;
+    document.querySelectorAll(".audio-bar").forEach(bar => {
+      bar.querySelector(".ab-knob").style.left = "0%";
+      bar.querySelector(".ab-play").innerHTML = ICON_PLAY;
+    });
+  }
+
+  function play(key) {
+    if (!synth) return;
+    const wasPlaying = playingKey === key;
+    stopSpeech();
+    if (wasPlaying) return;                 // tapping the live bar stops it
+
+    const text = textFor(questions[index], key);
+    const bar = document.querySelector(`.audio-bar[data-key="${key}"]`);
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 0.88;                          // a little slow — it's math, and he's nine
+    u.lang = "en-US";
+    u.onboundary = e => {
+      if (!bar || playingKey !== key) return;
+      const pct = Math.min(100, (e.charIndex / Math.max(1, text.length)) * 100);
+      bar.querySelector(".ab-knob").style.left = pct + "%";
+    };
+    u.onend = stopSpeech;
+    u.onerror = stopSpeech;
+    playingKey = key;
+    if (bar) bar.querySelector(".ab-play").innerHTML = ICON_STOP;
+    synth.speak(u);
+  }
+
+  /* ---------- Icons (inline so they match the test's look offline) -------- */
+
+  const ICON_PLAY = '<circle cx="12" cy="12" r="10.2" fill="none" stroke="#fff" stroke-width="1.7"/><path d="M9.8 7.9l6.3 4.1-6.3 4.1z" fill="#fff"/>';
+  const ICON_STOP = '<circle cx="12" cy="12" r="10.2" fill="none" stroke="#fff" stroke-width="1.7"/><rect x="8.9" y="8.9" width="6.2" height="6.2" rx="1" fill="#fff"/>';
+  const ICON_SPK  = '<path d="M3.5 9.2v5.6h3.7l4.8 3.8V5.4L7.2 9.2H3.5z" fill="#fff"/>' +
+                    '<path d="M15 8.8a4.6 4.6 0 010 6.4" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>' +
+                    '<path d="M17.8 6.2a8.4 8.4 0 010 11.6" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/>';
+
+  function audioBar(key, small) {
+    if (!synth) return "";
+    return `<button class="audio-bar ${small ? "sm" : ""}" data-act="play" data-key="${key}" aria-label="Listen">
+      <svg class="ab-icon ab-play" viewBox="0 0 24 24">${ICON_PLAY}</svg>
+      <span class="ab-track"><span class="ab-knob"></span></span>
+      <svg class="ab-icon" viewBox="0 0 24 24">${ICON_SPK}</svg>
+    </button>`;
+  }
+
+  const TICK = '<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#157f3d"/><path d="M5.6 10.3l2.9 2.9 5.9-6.1" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const CROSS = '<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#c0271c"/><path d="M6.8 6.8l6.4 6.4M13.2 6.8l-6.4 6.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>';
+
+  function radio(on) { return `<svg class="mark" viewBox="0 0 22 22"><circle cx="11" cy="11" r="9" fill="#fff" stroke="${on ? "#3b82f6" : "#b9b9b9"}" stroke-width="1.5"/>${on ? '<circle cx="11" cy="11" r="4.6" fill="#3b82f6"/>' : ""}</svg>`; }
+  function check(on) { return `<svg class="mark" viewBox="0 0 22 22"><rect x="2.2" y="2.2" width="17.6" height="17.6" rx="3.4" fill="${on ? "#7ba7f0" : "#fff"}" stroke="${on ? "#7ba7f0" : "#b9b9b9"}" stroke-width="1.5"/>${on ? '<path d="M6.4 11.2l3.1 3.1 6.1-6.3" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>' : ""}</svg>`; }
+
+  /* ---------- Answer bookkeeping ------------------------------------------ */
+
+  function blankAnswer(q) {
+    if (q.type === "multi") return [];
+    if (q.type === "drag")  return q.answers.map(() => null);
+    return null;
+  }
+  function isAnswered(q, a) {
+    if (q.type === "multi") return a && a.length > 0;
+    if (q.type === "drag")  return a && a.every(v => v !== null);
+    return a !== null;
+  }
+  function isRight(q, a) {
+    if (!isAnswered(q, a)) return false;
+    if (q.type === "multi") return sameSet(a, q.answers);
+    if (q.type === "drag")  return a.every((v, i) => v === q.answers[i]);
+    return a === q.answer;
+  }
+  // "choice" locks in the moment he taps. The others need a Check button
+  // because he's still building a multi-part answer.
+  const needsCheckButton = q => q.type === "multi" || q.type === "drag";
+
+  /* ---------- Test flow ---------------------------------------------------- */
+
+  function start() {
+    answers = questions.map(blankAnswer);
+    checked = questions.map(() => false);
+    index = 0; finished = false; reward = null; armed = null;
+    stopSpeech(); render();
+  }
+
+  function goTo(i) {
+    if (i < 0 || i >= questions.length) return;
+    stopSpeech(); index = i; armed = null; render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function pick(i) {
+    const q = questions[index];
+    if (checked[index]) return;                 // already graded — locked
+    if (q.type === "multi") {
+      const a = answers[index];
+      const at = a.indexOf(i);
+      at === -1 ? a.push(i) : a.splice(at, 1);
+    } else {
+      answers[index] = i;
+      checked[index] = true;                    // grade it right away
+    }
+    render();
+  }
+
+  function checkAnswer() {
+    const q = questions[index];
+    if (checked[index] || !isAnswered(q, answers[index])) return;
+    checked[index] = true;
+    stopSpeech(); render();
+  }
+
+  function finish() {
+    stopSpeech();
+    const correct = questions.reduce((n, q, i) => n + (isRight(q, answers[i]) ? 1 : 0), 0);
+    reward = window.Progress
+      ? window.Progress.record(KID, SETID, Math.round(correct / questions.length * 100))
+      : { stars: 0, streak: 0, totalStars: 0 };
+    finished = true; render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* ---------- Drag to fill -------------------------------------------------
+     One gesture handles both habits: drag a number into a blank (what the
+     real test wants), or tap a number then tap a blank (what actually works
+     on an iPad). Tapping a filled blank clears it. */
+
+  let armed = null, ghost = null, dragging = false, startPt = null;
+
+  function placeInBlank(slot, value) {
+    answers[index][slot] = value;
+    armed = null; render();
+  }
+
+  document.addEventListener("pointerdown", e => {
+    const chip = e.target.closest(".chip");
+    if (!chip || checked[index]) return;
+    startPt = { x: e.clientX, y: e.clientY, chip, value: chip.dataset.value };
+    dragging = false;
+  });
+
+  document.addEventListener("pointermove", e => {
+    if (!startPt) return;
+    if (!dragging) {
+      if (Math.hypot(e.clientX - startPt.x, e.clientY - startPt.y) < 7) return;
+      dragging = true;
+      ghost = startPt.chip.cloneNode(true);
+      ghost.classList.add("ghost");
+      ghost.style.width = startPt.chip.offsetWidth + "px";
+      document.body.appendChild(ghost);
+    }
+    ghost.style.left = (e.clientX - ghost.offsetWidth / 2) + "px";
+    ghost.style.top  = (e.clientY - ghost.offsetHeight / 2) + "px";
+    ghost.style.display = "none";
+    const over = document.elementFromPoint(e.clientX, e.clientY);
+    ghost.style.display = "";
+    document.querySelectorAll(".blank").forEach(b => b.classList.remove("hot"));
+    const blank = over && over.closest(".blank");
+    if (blank) blank.classList.add("hot");
+  });
+
+  document.addEventListener("pointerup", e => {
+    if (!startPt) return;
+    const { value } = startPt;
+    if (dragging) {
+      ghost.style.display = "none";
+      const over = document.elementFromPoint(e.clientX, e.clientY);
+      ghost.remove(); ghost = null;
+      const blank = over && over.closest(".blank");
+      startPt = null; dragging = false;
+      if (blank) placeInBlank(Number(blank.dataset.slot), value);
+      else document.querySelectorAll(".blank").forEach(b => b.classList.remove("hot"));
+      return;
+    }
+    startPt = null;
+    armed = armed === value ? null : value;   // plain tap = arm this number
+    render();
+  });
+
+  /* ---------- Screens ------------------------------------------------------ */
+
+  function navBar(right) {
+    return `<div class="nav-bar">
+      <a class="nav-back" href="../../index.html">‹ Menu</a>
+      <div class="nav-title">${esc(TITLE)}</div>
+      <div class="nav-right">${right || ""}</div>
+    </div>`;
+  }
+
+  function dots() {
+    return `<div class="qnav">${questions.map((q, i) => {
+      const state = checked[i] ? (isRight(q, answers[i]) ? "right" : "wrong") : "";
+      return `<button class="qdot ${state} ${i === index && !finished ? "current" : ""}"
+        data-act="goto" data-i="${i}" aria-label="Question ${i + 1}">${i + 1}</button>`;
+    }).join("")}</div>`;
+  }
+
+  function promptHtml(q) {
+    return String(q.prompt).split("\n")
+      .map(l => `<span class="ln">${esc(l)}</span>`).join("");
+  }
+
+  function choicesHtml(q) {
+    const a = answers[index], done = checked[index];
+    return `<div class="choices">${q.choices.map((c, i) => {
+      const on = q.type === "multi" ? a.includes(i) : a === i;
+      const mark = q.type === "multi" ? check(on) : radio(on);
+      let extra = "";
+      if (done) {
+        const isKey = q.type === "multi" ? q.answers.includes(i) : q.answer === i;
+        if (isKey) extra = "key";
+        else if (on) extra = "miss";
+      }
+      const role = q.type === "multi" ? "checkbox" : "radio";
+      const attrs = `role="${role}" aria-checked="${on}" tabindex="0" data-act="pick" data-i="${i}"`;
+      return q.audioChoices
+        ? `<div class="choice stacked ${on ? "on" : ""} ${extra}" ${attrs}>
+             ${audioBar("c" + i, true)}
+             <span class="pick-row">${mark}<span class="choice-text">${esc(c)}</span></span>
+           </div>`
+        : `<div class="choice ${on ? "on" : ""} ${extra}" ${attrs}>
+             ${mark}<span class="choice-text">${esc(c)}</span>
+           </div>`;
+    }).join("")}</div>`;
+  }
+
+  function dragHtml(q) {
+    const a = answers[index], done = checked[index];
+    const bank = done ? "" : `<div class="bank">${q.bank.map(v =>
+      `<div class="chip ${armed === v ? "armed" : ""}" data-value="${esc(v)}">${esc(v)}</div>`
+    ).join("")}</div>`;
+
+    const lines = q.template.map(line => {
+      const html = line.split(/(\{\d+\})/).map(part => {
+        const m = part.match(/^\{(\d+)\}$/);
+        if (!m) return esc(part);
+        const slot = Number(m[1]);
+        const val = a[slot];
+        const state = done ? (val === q.answers[slot] ? "key" : "miss") : "";
+        return `<span class="blank ${state}" data-act="blank" data-slot="${slot}">${val === null ? "" : esc(val)}</span>`;
+      }).join("");
+      return `<div class="drag-line">${html}</div>`;
+    }).join("");
+
+    const hint = done ? "" :
+      `<div class="drag-hint">Drag a number into a box — or tap the number, then tap the box.</div>`;
+    return bank + lines + hint;
+  }
+
+  function answerLine(q) {
+    if (q.type === "drag")
+      return q.answers.map((v, i) => `${i === 0 ? "" : ""}${v}`).join(" , ");
+    const L = ["A", "B", "C", "D", "E", "F"];
+    if (q.type === "multi")
+      return q.answers.slice().sort((x, y) => x - y)
+        .map(i => `${L[i]}. ${q.choices[i]}`).join("   ");
+    return `${L[q.answer]}. ${q.choices[q.answer]}`;
+  }
+
+  function questionCard(q) {
+    const done = checked[index];
+    const right = done && isRight(q, answers[index]);
+    const verdict = done
+      ? (right ? `<div class="verdict right">${TICK}Correct</div>`
+               : `<div class="verdict wrong">${CROSS}Incorrect</div>`)
+      : "";
+    const noVoice = synth ? "" : `<div class="no-voice">Read-aloud needs Chrome or Safari.</div>`;
+    const body = q.type === "drag" ? dragHtml(q) : choicesHtml(q);
+
+    let why = "";
+    if (done && !right) {
+      why = `<div class="why"><strong>Answer:</strong> ${esc(answerLine(q))}` +
+            (q.explain ? `<br>${esc(q.explain)}` : "") + `</div>`;
+    } else if (done && q.explain) {
+      why = `<div class="why">${esc(q.explain)}</div>`;
+    }
+
+    return `<div class="test-surface">
+      ${verdict}${audioBar("q", false)}${noVoice}
+      <div class="q-text">${promptHtml(q)}</div>
+      ${q.figure ? `<pre class="q-figure">${esc(q.figure)}</pre>` : ""}
+      ${body}${why}
+    </div>`;
+  }
+
+  function resultsScreen() {
+    const correct = questions.reduce((n, q, i) => n + (isRight(q, answers[i]) ? 1 : 0), 0);
+    const pct = Math.round(correct / questions.length * 100);
+    const r = reward || { stars: 0, streak: 0, totalStars: 0 };
+    const head = r.stars >= 3 ? "Amazing! 🏆" : r.stars === 2 ? "Great job! 🎉"
+               : r.stars === 1 ? "Nice work! 👍" : "Keep going! 💪";
+    const stars = [1, 2, 3].map(i => `<span class="big-star ${i <= r.stars ? "on" : ""}">★</span>`).join("");
+    const chips = [
+      r.streakUp ? `<div class="reward-chip fire">🔥 ${r.streak}-day streak</div>` : "",
+      r.isNewBest ? `<div class="reward-chip new">⭐ New best!</div>` : "",
+      `<div class="reward-chip">⭐ ${r.totalStars} total</div>`
+    ].join("");
+
+    const missed = questions.map((q, i) => ({ q, i })).filter(({ q, i }) => !isRight(q, answers[i]));
+    const again = missed.length
+      ? `<div class="progress-cap" style="margin-top:22px">Worth another look — tap a number</div>${dots()}`
+      : `<div class="progress-cap" style="margin-top:22px">Every one correct 🎯</div>`;
+
+    return `${navBar("")}
+      <div class="card reward">
+        <div class="reward-stars">${stars}</div>
+        <div class="headline">${head}</div>
+        <div class="pct">${correct} of ${questions.length} correct · ${pct}%</div>
+        <div class="reward-chips">${chips}</div>
+        <button class="btn-primary" data-act="again">Try Again</button>
+        <div style="margin-top:10px"><a class="btn-text" href="../../index.html">Back to Menu</a></div>
+      </div>
+      ${again}`;
+  }
+
+  function render() {
+    if (finished) { $("app").innerHTML = resultsScreen(); return; }
+
+    const q = questions[index];
+    const done = checked[index];
+    const last = index === questions.length - 1;
+    const graded = checked.filter(Boolean).length;
+    const score = questions.reduce((n, qq, i) => n + (checked[i] && isRight(qq, answers[i]) ? 1 : 0), 0);
+
+    let mainBtn;
+    if (!done && needsCheckButton(q)) {
+      const ready = isAnswered(q, answers[index]);
+      mainBtn = `<button class="btn-primary submit" data-act="check" ${ready ? "" : "disabled style=opacity:.45"}>Check Answer</button>`;
+    } else if (done && last) {
+      mainBtn = `<button class="btn-primary submit" data-act="finish">See Results</button>`;
+    } else if (done) {
+      mainBtn = `<button class="btn-primary" data-act="next">Next ›</button>`;
+    } else {
+      mainBtn = `<button class="btn-primary" data-act="next" disabled style="opacity:.45">Next ›</button>`;
+    }
+
+    $("app").innerHTML = `${navBar(`${score}/${graded}`)}
+      <div class="progress-track"><div class="progress-fill" style="width:${graded / questions.length * 100}%"></div></div>
+      <div class="progress-cap">Question ${index + 1} of ${questions.length}</div>
+      ${dots()}${questionCard(q)}
+      <div class="test-foot">
+        <button class="btn-sec" data-act="prev" ${index === 0 ? "disabled" : ""}>‹ Back</button>
+        ${mainBtn}
+      </div>`;
+  }
+
+  /* Delegated clicks — question text can hold quotes and math symbols,
+     so nothing is interpolated into inline handlers. */
+  document.addEventListener("click", e => {
+    const el = e.target.closest("[data-act]");
+    if (!el || el.disabled || el.hasAttribute("disabled")) return;
+    switch (el.dataset.act) {
+      case "play":   e.stopPropagation(); play(el.dataset.key); break;
+      case "pick":   pick(Number(el.dataset.i)); break;
+      case "goto":   if (finished) finished = false; goTo(Number(el.dataset.i)); break;
+      case "prev":   goTo(index - 1); break;
+      case "next":   goTo(index + 1); break;
+      case "check":  checkAnswer(); break;
+      case "finish": finish(); break;
+      case "again":  start(); break;
+      case "blank": {
+        if (checked[index]) break;
+        const slot = Number(el.dataset.slot);
+        if (armed !== null) placeInBlank(slot, armed);
+        else { answers[index][slot] = null; render(); }
+        break;
+      }
+    }
+  });
+
+  document.addEventListener("keydown", e => {
+    if (e.key !== " " && e.key !== "Enter") return;
+    const el = document.activeElement;
+    if (el && el.classList && el.classList.contains("choice")) { e.preventDefault(); el.click(); }
+  });
+
+  window.addEventListener("pagehide", stopSpeech);
+
+  GameLoader.loadSet("../../").then(({ data, title, kidId, id }) => {
+    TITLE = title; document.title = title; KID = kidId; SETID = id;
+    questions = (data.questions || []).filter(q => {
+      if (!q || !q.prompt) return false;
+      if (q.type === "drag")
+        return Array.isArray(q.bank) && Array.isArray(q.template) && Array.isArray(q.answers);
+      if (!Array.isArray(q.choices) || q.choices.length < 2) return false;
+      return q.type === "multi"
+        ? Array.isArray(q.answers) && q.answers.length > 0
+        : Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.choices.length;
+    });
+    if (!questions.length) throw new Error("This practice test has no questions yet.");
+    start();
+  }).catch(err => {
+    $("app").innerHTML = `<div class="card err"><div class="emoji">😕</div>
+      <div class="msg">${esc(err.message)}</div>
+      <a class="btn-text" href="../../index.html">Back to Menu</a></div>`;
+  });
+</script>
+</body>
+</html>
