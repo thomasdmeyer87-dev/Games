@@ -28,7 +28,8 @@ each kid, their subjects, and which activities show up.
    it (use only lowercase letters, numbers, and dashes), then edit the words.
    - For a vocab quiz, copy `data/sets/evan-vocab-3.js`.
    - For a say-the-word game, copy `data/sets/eli-sight-words.js`.
-   - For a math practice test, copy `data/sets/evan-math-multiply.js`.
+   - For a math practice test, copy `data/sets/evan-math-topic3.js`, which
+     has a worked example of every question type.
 2. **List it in `data/manifest.js`.** Add an entry under the right kid/subject:
    ```js
    { set: "your-file-name", title: "What kids see", engine: "vocab" }
@@ -42,8 +43,13 @@ shows "Coming soon" — that's why **Eli's Math** is a placeholder right now.
 
 ## Writing a math practice test
 
-`data/sets/evan-math-multiply.js` has a worked example of each question
-type. Every question needs a `type`:
+`data/sets/evan-math-topic3.js` mirrors Evan's Topic 3 Assessment Practice
+(Savvas enVision, pp. 127-128) one question at a time — same pattern and
+standard as the paper, different numbers. Its header comment maps each
+question back to the item it came from, so when a new topic comes home you
+can see how a paper test turns into a content file.
+
+Every question needs a `type`:
 
 | `type`     | What the child does            | Fields it needs                    |
 |------------|--------------------------------|------------------------------------|
@@ -59,6 +65,9 @@ Useful extras:
   question. The real test does this on the wordier problems.
 - `figure` — a block of monospaced text (a table, a column sum) under the
   question.
+- `mono: true` on a `"drag"` question lines the blanks up in a column, for a
+  vertical algorithm. A template line of `"---"` draws the rule above the
+  total.
 - `\n` inside `prompt` starts a new line.
 - In a `"drag"` question, `template` is the lines of text and `{0} {1} {2}`
   mark where the blanks go; `answers` lists what belongs in each one. The

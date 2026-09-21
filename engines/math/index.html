@@ -89,6 +89,11 @@
       box-shadow: 0 8px 20px rgba(0,0,0,0.22); cursor: grabbing;
     }
     .drag-line { font-size: 19px; color: #1a1a1a; line-height: 2.6; }
+    .drag-line.mono {
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 18px; white-space: pre; line-height: 1.35; margin-bottom: 6px;
+    }
+    .drag-rule { width: 158px; height: 2px; background: #9a9a9a; margin: 8px 0 10px 34px; }
     .blank {
       display: inline-flex; align-items: center; justify-content: center;
       min-width: 118px; height: 50px; vertical-align: middle; margin: 0 6px;
@@ -207,6 +212,7 @@
       .replace(/\s*<\s*/g, " is less than ")
       .replace(/\s*>\s*/g, " is greater than ")
       .replace(/(\d)\s*\/\s*(\d)/g, "$1 over $2")
+      .replace(/[\u2500-\u257f|]+/g, " ")
       .replace(/_{2,}/g, " blank ")
       .replace(/\{\d+\}/g, " blank ")
       .replace(/\s{2,}/g, " ")
@@ -455,6 +461,7 @@
     ).join("")}</div>`;
 
     const lines = q.template.map(line => {
+      if (line.trim() === "---") return `<div class="drag-rule"></div>`;
       const html = line.split(/(\{\d+\})/).map(part => {
         const m = part.match(/^\{(\d+)\}$/);
         if (!m) return esc(part);
@@ -463,7 +470,7 @@
         const state = done ? (val === q.answers[slot] ? "key" : "miss") : "";
         return `<span class="blank ${state}" data-act="blank" data-slot="${slot}">${val === null ? "" : esc(val)}</span>`;
       }).join("");
-      return `<div class="drag-line">${html}</div>`;
+      return `<div class="drag-line ${q.mono ? "mono" : ""}">${html}</div>`;
     }).join("");
 
     const hint = done ? "" :

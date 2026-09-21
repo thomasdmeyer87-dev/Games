@@ -37,6 +37,7 @@ window.MANIFEST = {
         {
           name: "Math",
           activities: [
+            { set: "evan-math-topic3", title: "Topic 3 Practice Test", engine: "math" },
             { set: "evan-math-multiply", title: "Multiply & Estimate", engine: "math" }
           ]
         }
