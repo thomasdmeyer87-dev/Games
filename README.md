@@ -35,7 +35,8 @@ each kid, their subjects, and which activities show up.
    { set: "your-file-name", title: "What kids see", engine: "vocab" }
    ```
    (`engine` is `"vocab"`, `"speak"`, or `"math"`.)
-3. Save, commit, and push. It appears on the home screen automatically.
+3. Save, commit, push, and merge into `main`. It appears on the home screen
+   automatically — see **Publishing** below for why the merge matters.
 
 To retire an assignment, just delete its line from `data/manifest.js`
 (you can leave the content file for later). A subject with no activities
@@ -96,12 +97,28 @@ engines/math/         Practice test with read-aloud
 manifest.json         iPad "add to home screen" app settings
 ```
 
-## GitHub Pages setup
+## Publishing
+
+**The live site is whatever is on `main`.** A branch, or a pull request that
+is still open, changes nothing the kids can see. If a new activity isn't
+showing up, the first thing to check is whether it actually landed on `main`.
+
+One-time setup:
 
 1. Open the repository in GitHub → **Settings** → **Pages**.
 2. Source: **Deploy from branch**, Branch: **main**, Folder: **/ (root)**, Save.
 3. The site appears at `https://YOUR-USERNAME.github.io/REPO-NAME/`.
 4. On the iPad, open that link in Safari, tap **Share → Add to Home Screen**.
+
+After that, every change goes live the same way:
+
+1. Commit and push.
+2. Get it onto `main` — push straight there, or merge the pull request.
+3. Pages rebuilds by itself, usually within a minute.
+4. **Force a refresh on the iPad.** Safari caches hard, and a Home Screen app
+   holds the old copy longer than the browser does. Pull down to refresh, or
+   close the app card and reopen it. When a change looks missing but is
+   definitely on `main`, this is almost always why.
 
 ## Conventions
 
@@ -115,4 +132,9 @@ manifest.json         iPad "add to home screen" app settings
   `<div role="radio">` for exactly this reason — they contain a play button.
 - **Commit messages: no `Co-Authored-By:` trailer.** Commits are authored by the
   user alone — write a normal message with no co-author line.
-- **Only commit or push when explicitly asked.**
+- **Finished work belongs on `main`.** Committing and pushing is not delivery —
+  the kids see `main` and only `main`. Don't leave a tested change sitting in
+  an open or draft pull request and call it done; merge it, or say plainly
+  what is blocking the merge.
+- **Stick to what was asked.** Don't fold unrelated changes into a commit. If
+  you spot something else worth fixing, mention it rather than doing it.
