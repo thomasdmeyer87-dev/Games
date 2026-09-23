@@ -11,9 +11,9 @@
         with three fields:
         - set    = the file name in data/sets/  (without ".js")
         - title  = the button label kids see
-        - engine = which game to use: "vocab" or "speak"
+        - engine = which game to use: "vocab", "speak", or "math"
 
-   An empty activities list (like Math below) shows "Coming soon".
+   An empty activities list (like Eli's Math below) shows "Coming soon".
    ============================================================ */
 
 window.MANIFEST = {
@@ -36,7 +36,10 @@ window.MANIFEST = {
         },
         {
           name: "Math",
-          activities: []   // empty for now → shows "Coming soon"
+          activities: [
+            { set: "evan-math-topic3", title: "Topic 3 Practice Test", engine: "math" },
+            { set: "evan-math-multiply", title: "Multiply & Estimate", engine: "math" }
+          ]
         }
       ]
     },
