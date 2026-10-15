@@ -5,8 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Math Practice Test</title>
   <link rel="stylesheet" href="../../assets/styles.css" />
-  <meta name="theme-color" content="#f7f8fc" />
+  <!-- Added to the Home Screen, it opens full screen like an app: no tabs, no address bar. -->
+  <link rel="manifest" href="../../manifest.json" />
+  <link rel="apple-touch-icon" href="../../assets/icons/icon-180.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Practice" />
+  <meta name="theme-color" content="#f7f8fc" />
   <style>
     /* ============================================================
        The question area deliberately copies the look of the real
@@ -149,11 +155,27 @@
       -webkit-user-select: none; user-select: none;
       -webkit-touch-callout: none;
     }
-    .pad-cap { position: absolute; left: 10px; top: 7px; font-size: 12.5px; color: #9a9a9a; pointer-events: none; }
-    .pad-clear {
-      position: absolute; right: 7px; top: 6px; border: 1px solid #c8c8c8; border-radius: 4px;
-      background: #fff; color: #4a4a4a; font: inherit; font-size: 13px; padding: 4px 10px; cursor: pointer;
+    /* Toolbar strip across the top of the sheet, so the buttons never sit
+       on his drawing. */
+    .pad-bar {
+      display: flex; align-items: center; gap: 6px; padding: 6px 8px 6px 12px;
+      border-bottom: 1px solid #e3e3e3; background: #fafafa;
     }
+    .pad-cap { flex: 1; font-size: 13.5px; font-weight: 600; color: #6b6b6b; }
+    .pad-btn {
+      border: 1px solid #c8c8c8; border-radius: 5px; background: #fff; color: #3a3a3a;
+      font: inherit; font-size: 13.5px; padding: 6px 11px; cursor: pointer;
+      display: inline-flex; align-items: center; gap: 5px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pad-btn svg { width: 16px; height: 16px; flex: none; }
+    .pad-btn:disabled { opacity: 0.4; cursor: default; }
+    .pad-tools { display: inline-flex; }
+    .pad-tools .pad-btn { border-radius: 0; }
+    .pad-tools .pad-btn:first-child { border-radius: 5px 0 0 5px; }
+    .pad-tools .pad-btn:last-child { border-radius: 0 5px 5px 0; margin-left: -1px; }
+    .pad-btn.on { background: #e8f0fe; border-color: #3b82f6; color: #1d4ed8; position: relative; z-index: 1; }
+    .pad.erasing canvas { cursor: cell; }
     .entry-wrap { display: flex; gap: 18px; align-items: flex-start; margin-top: 16px; flex-wrap: wrap; }
     .entries { flex: 1; min-width: 210px; display: grid; gap: 10px; }
     .entry { display: flex; align-items: center; gap: 10px; }
@@ -246,7 +268,7 @@
        view. Tighten the spacing so more of the question fits without
        scrolling. The text itself stays the size it is; a 4th grader has to be
        able to read it. */
-    @media (max-height: 780px) {
+    @media (max-height: 820px) {
       .test-surface { padding: 18px 20px 20px; margin-bottom: 10px; }
       .qnav { margin-bottom: 10px; }
       .qdot { width: 27px; height: 27px; }
@@ -310,6 +332,7 @@
   let KID = null, SETID = null;
   let answers = [], revealed = false, index = 0, finished = false, reward = null;
   let pads = [], activeEntry = 0;   // scratch-pad strokes per question; which answer box is taking keys
+  let erasing = false;              // scratch pad tool: pencil (false) or eraser (true)
 
   const $ = id => document.getElementById(id);
   const synth = window.speechSynthesis;
@@ -474,14 +497,14 @@
     questions = buildQuestions();      // a new test on every attempt
     answers = questions.map(blankAnswer);
     revealed = false;
-    pads = questions.map(() => []);
+    pads = questions.map(() => []); erasing = false;
     index = 0; finished = false; reward = null; armed = null; activeEntry = 0;
     stopSpeech(); render();
   }
 
   function goTo(i) {
     if (i < 0 || i >= questions.length) return;
-    stopSpeech(); index = i; armed = null; activeEntry = 0; render();
+    stopSpeech(); index = i; armed = null; activeEntry = 0; erasing = false; render();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -550,11 +573,20 @@
     c.width = c.clientWidth * dpr; c.height = c.clientHeight * dpr;
     const ctx = c.getContext("2d");
     ctx.scale(dpr, dpr);
-    ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#1f2a44";
+    ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#1f2a44";
+    // Each stroke is { erase, pts }. The eraser is a wide stroke that cuts
+    // the ink away, so Undo can take back an erase like any other stroke.
     const strokes = pads[index];
+    const pen = erase => {
+      ctx.globalCompositeOperation = erase ? "destination-out" : "source-over";
+      ctx.lineWidth = erase ? 22 : 2.4;
+    };
     const seg = (p, q) => { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke(); };
-    strokes.forEach(s => s.length === 1 ? seg(s[0], { x: s[0].x + 0.1, y: s[0].y }) :
-                                          s.forEach((p, i) => i && seg(s[i - 1], p)));
+    const dot = p => seg(p, { x: p.x + 0.1, y: p.y });
+    strokes.forEach(s => {
+      pen(s.erase);
+      s.pts.length === 1 ? dot(s.pts[0]) : s.pts.forEach((p, i) => i && seg(s.pts[i - 1], p));
+    });
     if (revealed) return;                       // his work stays visible, but it's done
 
     let cur = null;
@@ -572,17 +604,26 @@
       e.preventDefault(); c.setPointerCapture(e.pointerId);
       const sel = window.getSelection && window.getSelection();
       if (sel && sel.rangeCount) sel.removeAllRanges();   // clear anything already highlighted
-      cur = [at(e)]; strokes.push(cur); seg(cur[0], { x: cur[0].x + 0.1, y: cur[0].y });
+      cur = { erase: erasing, pts: [at(e)] };
+      strokes.push(cur); pen(cur.erase); dot(cur.pts[0]);
+      syncPadButtons();
     };
     c.onpointermove = e => {
       if (!cur) return;
       e.preventDefault();
       // A pencil reports many points between frames; use them all for smooth lines.
       (e.getCoalescedEvents ? e.getCoalescedEvents() : [e]).forEach(ev => {
-        const p = at(ev); seg(cur[cur.length - 1], p); cur.push(p);
+        const p = at(ev); seg(cur.pts[cur.pts.length - 1], p); cur.pts.push(p);
       });
     };
     c.onpointerup = c.onpointercancel = () => { cur = null; };
+  }
+
+  // Undo and Clear switch on with the first stroke, without redrawing the page.
+  function syncPadButtons() {
+    const any = (pads[index] || []).length > 0;
+    document.querySelectorAll('.pad-btn[data-act="undo"], .pad-btn[data-act="clearpad"]')
+      .forEach(b => { b.disabled = !any; });
   }
 
   window.addEventListener("resize", () => { if (!finished) mountPad(); });
@@ -767,11 +808,22 @@
     return `<div class="review-cap">Review — every question</div>${rows}`;
   }
 
+  const ICON_PENCIL = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M13.6 3.4l3 3L7 16H4v-3z"/><path d="M11.6 5.4l3 3"/></svg>';
+  const ICON_ERASER = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M11.4 3.6l5 5-7.6 7.6H5.3l-2.5-2.5z"/><path d="M7.2 7.8l5 5"/><path d="M9 16.2h8"/></svg>';
+  const ICON_UNDO   = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 5L4 8.5 7.5 12"/><path d="M4.5 8.5h7a4.5 4.5 0 010 9H9"/></svg>';
+
   function padHtml() {
-    return `<div class="pad">
-      <canvas aria-label="Scratch paper"></canvas>
-      <div class="pad-cap">Scratch paper</div>
-      ${revealed ? "" : `<button class="pad-clear" data-act="clearpad">Clear</button>`}
+    const strokes = pads[index] || [];
+    const tools = revealed ? "" : `
+      <span class="pad-tools">
+        <button class="pad-btn ${erasing ? "" : "on"}" data-act="pen" aria-pressed="${!erasing}">${ICON_PENCIL}Pencil</button>
+        <button class="pad-btn ${erasing ? "on" : ""}" data-act="eraser" aria-pressed="${erasing}">${ICON_ERASER}Eraser</button>
+      </span>
+      <button class="pad-btn" data-act="undo" ${strokes.length ? "" : "disabled"}>${ICON_UNDO}Undo</button>
+      <button class="pad-btn" data-act="clearpad" ${strokes.length ? "" : "disabled"}>Clear</button>`;
+    return `<div class="pad ${erasing ? "erasing" : ""}">
+      <div class="pad-bar"><span class="pad-cap">Scratch Paper</span>${tools}</div>
+      <canvas aria-label="Scratch Paper"></canvas>
     </div>`;
   }
 
@@ -905,6 +957,9 @@
       case "digit":   keyIn(el.dataset.d); break;
       case "entry":   if (!revealed) { activeEntry = Number(el.dataset.e); render(); } break;
       case "clearpad": pads[index] = []; render(); break;
+      case "undo":     pads[index].pop(); render(); break;
+      case "pen":      erasing = false; render(); break;
+      case "eraser":   erasing = true; render(); break;
       case "again":  start(); break;
       case "blank": {
         if (revealed) break;

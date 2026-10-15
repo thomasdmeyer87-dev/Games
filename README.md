@@ -156,6 +156,26 @@ engines/math/         Practice test with read-aloud
 manifest.json         iPad "add to home screen" app settings
 ```
 
+## Use it as an app (full screen)
+
+Opened from the iPad's Home Screen, the site runs full screen like an app —
+no Safari tabs, no address bar — which gives the test and the scratch paper
+the whole screen.
+
+1. Open the site in **Safari** on the iPad.
+2. Tap the **Share** button (the square with the arrow), then **Add to Home
+   Screen**, then **Add**.
+3. Open it from the new **Practice** icon from now on.
+
+**Stars and streaks start fresh in the app.** iPadOS keeps a Home Screen
+app's saved data separate from Safari's, so progress earned in Safari tabs
+doesn't carry over (and the other way round). Pick one and stick with it —
+the app is the better one.
+
+There's no pull-to-refresh in the app. A new assignment shows up the next
+time the app is opened; to force it, swipe the app away in the app switcher
+and open it again.
+
 ## Publishing
 
 **The live site is whatever is on `main`.** A branch, or a pull request that

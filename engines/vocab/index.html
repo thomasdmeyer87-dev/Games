@@ -5,8 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Vocabulary</title>
   <link rel="stylesheet" href="../../assets/styles.css" />
-  <meta name="theme-color" content="#f2f2f7" />
+  <!-- Added to the Home Screen, it opens full screen like an app: no tabs, no address bar. -->
+  <link rel="manifest" href="../../manifest.json" />
+  <link rel="apple-touch-icon" href="../../assets/icons/icon-180.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Practice" />
+  <meta name="theme-color" content="#f2f2f7" />
   <style>
     .def-label {
       font-size: 12px; font-weight: 700; letter-spacing: 0.06em;
@@ -78,7 +84,7 @@
        view. Tighten the spacing so the whole card fits without scrolling.
        The definition and the words keep their size; they have to stay
        readable. */
-    @media (max-height: 780px) {
+    @media (max-height: 820px) {
       .prompt { margin: 14px 2px 9px; }
       .option { padding: 12px 16px; margin-bottom: 8px; }
       .spell-wrap { margin-top: 12px; gap: 14px; }

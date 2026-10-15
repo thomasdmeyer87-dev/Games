@@ -258,7 +258,7 @@ body {
 
 /* Short windows — a landscape iPad with tabs showing, or a split view.
    Give the question back the room the browser took. */
-@media (max-height: 780px) {
+@media (max-height: 820px) {
   .game-shell { padding-top: 2px; }
   .nav-bar { height: 40px; margin-bottom: 2px; }
   .progress-track { margin: 4px 2px; }
