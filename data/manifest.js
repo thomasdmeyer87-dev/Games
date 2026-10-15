@@ -17,6 +17,11 @@
                    can see what just arrived. Leave it out and the tile
                    simply never shows the badge.
 
+   To retire an assignment without losing it:
+     Add  archived: true  to its entry. The tile disappears from the home
+     screen, but the content file and the kid's scores stay exactly where
+     they are. Delete those two words to bring it back.
+
    An empty activities list (like Eli's Math below) shows "Coming soon".
    ============================================================ */
 
@@ -34,8 +39,10 @@ window.MANIFEST = {
         {
           name: "ELA",
           activities: [
-            { set: "evan-vocab-3", title: "Key Literacy Terms 3", engine: "vocab" , added: "2026-06-07" },
-            { set: "evan-vocab-4", title: "Key Literacy Terms 4", engine: "vocab" , added: "2026-06-07" },
+            // Archived 2026-10-15 — finished with these two. Scores are kept;
+            // delete  archived: true  to put either back on the home screen.
+            { set: "evan-vocab-3", title: "Key Literacy Terms 3", engine: "vocab" , added: "2026-06-07", archived: true },
+            { set: "evan-vocab-4", title: "Key Literacy Terms 4", engine: "vocab" , added: "2026-06-07", archived: true },
             { set: "evan-vocab-graph", title: "16 October Vocab Test List", engine: "vocab" , added: "2026-10-15" }
           ]
         },

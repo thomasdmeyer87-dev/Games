@@ -39,8 +39,10 @@ each kid, their subjects, and which activities show up.
 3. Save, commit, push, and merge into `main`. It appears on the home screen
    automatically — see **Publishing** below for why the merge matters.
 
-To retire an assignment, just delete its line from `data/manifest.js`
-(you can leave the content file for later). A subject with no activities
+To retire an assignment, add `archived: true` to its line in
+`data/manifest.js`. The tile leaves the home screen, but the content file and
+the kid's scores stay put — delete those two words to bring it back. (Key
+Literacy Terms 3 and 4 are archived this way.) A subject with no activities
 shows "Coming soon" — that's why **Eli's Math** is a placeholder right now.
 
 ## The NEW badge
@@ -165,6 +167,14 @@ the thing you do often, now shows up at once.
   is the question card inside `engines/math/`, which copies the plain look of
   the real online test on purpose, so the format is familiar on test day. The
   menu bar and the results screen there still use the shared style.
+- **The button that moves you on lives in an `.action-bar`.** On an iPad with
+  Safari's tab bar showing, a tall question used to push Next off the bottom
+  of the screen. The engine shell fills exactly the visible window and the
+  `.action-bar` row is pinned to its bottom, so the button is always on screen
+  without scrolling. New engines should put their Next / Check / Finish
+  buttons in one: `<div class="action-bar"><button class="btn-primary">…`.
+  Short windows also get tighter spacing (the `max-height` rules at the end
+  of `assets/styles.css` and in each engine) — text size stays put.
 - **Don't nest a `<button>` inside a `<button>`.** The browser silently splits
   them apart and the layout breaks. The math engine's answer choices are
   `<div role="radio">` for exactly this reason — they contain a play button.

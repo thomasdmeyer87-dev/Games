@@ -99,7 +99,9 @@
       const lvl = pr.level;
 
       const subjects = (kid.subjects || []).map(sub => {
-        const acts = sub.activities || [];
+        // archived: true in the manifest keeps the assignment and its scores
+        // but takes the tile off the home screen.
+        const acts = (sub.activities || []).filter(a => !a.archived);
         const body = acts.length ? acts.map(a => tile(kid.id, a)).join("") : lockedTile();
         return `<div class="subj-cap">${sub.name}</div><div class="tiles">${body}</div>`;
       }).join("");
