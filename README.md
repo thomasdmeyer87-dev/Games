@@ -32,15 +32,32 @@ each kid, their subjects, and which activities show up.
      has a worked example of every question type.
 2. **List it in `data/manifest.js`.** Add an entry under the right kid/subject:
    ```js
-   { set: "your-file-name", title: "What kids see", engine: "vocab" }
+   { set: "your-file-name", title: "What kids see", engine: "vocab", added: "2026-10-15" }
    ```
-   (`engine` is `"vocab"`, `"speak"`, or `"math"`.)
+   (`engine` is `"vocab"`, `"speak"`, or `"math"`. `added` is the day you
+   added it — see **The NEW badge** below.)
 3. Save, commit, push, and merge into `main`. It appears on the home screen
    automatically — see **Publishing** below for why the merge matters.
 
 To retire an assignment, just delete its line from `data/manifest.js`
 (you can leave the content file for later). A subject with no activities
 shows "Coming soon" — that's why **Eli's Math** is a placeholder right now.
+
+## The NEW badge
+
+A tile wears a gold **NEW** badge for **14 days** after the `added` date in
+`data/manifest.js`, so the kids can spot what just arrived. Put today's date
+in as `YYYY-MM-DD` when you add an activity. Leave `added` out and the tile
+simply never shows the badge — nothing breaks, and the same goes for a date
+you typo.
+
+The badge is about the *tile*, not the child. What the child has done shows
+in the footer underneath: stars and `Best 72%` once they have finished it,
+`Not tried yet` before that. The two used to be the same word, which meant a
+tile said "New" forever if nobody ever played it.
+
+To change how long the badge lasts, edit `NEW_FOR_DAYS` near the top of the
+script in `index.html`.
 
 ## Writing a math practice test
 
