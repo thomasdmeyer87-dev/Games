@@ -123,26 +123,100 @@
 
     .test-foot { display: flex; gap: 10px; }
     .test-foot .btn-sec { align-self: stretch; }
-    .btn-sec {
-      flex: none; min-width: 104px; border: none; border-radius: 16px;
-      background: #e8eaf4; color: var(--text-2); font-family: var(--font);
-      font-size: 17px; font-weight: 800; padding: 16px; cursor: pointer;
-      -webkit-tap-highlight-color: transparent; transition: filter 0.12s, transform 0.12s;
-    }
-    .btn-sec:active:not(:disabled) { filter: brightness(0.96); transform: scale(0.98); }
-    .btn-sec:disabled { opacity: 0.4; cursor: default; }
     .test-foot .btn-primary { margin: 0; }
     .btn-primary.submit { background: linear-gradient(135deg, #ffb15c, #ff8a3d); box-shadow: 0 8px 20px rgba(255,138,61,0.38); }
 
-    .gap-note {
-      text-align: center; font-size: 14px; font-weight: 700; color: #b4741f;
-      background: #fff8e8; border-radius: 12px; padding: 11px 14px; margin-top: 14px;
-    }
     .why {
       font-size: 15px; line-height: 1.55; color: #5a5a5a;
       background: #f6f7f9; border-left: 3px solid #c8c8c8;
       border-radius: 0 4px 4px 0; padding: 12px 14px; margin-top: 20px;
     }
+    /* ---- Show your work: scratch pad + typed answer ----
+       The pad is a blank white sheet he draws on with a finger or a
+       pencil, like the margin of the paper test — no grid, it's his space. The answer is typed on
+       on-screen keys, not a text field, so the iPad keyboard never opens:
+       no talk-to-text, no autocorrect. */
+    .pad {
+      position: relative; margin-top: 18px; border: 1px solid #c8c8c8; border-radius: 6px;
+      overflow: hidden; background: #fff;
+    }
+    .pad canvas { display: block; width: 100%; height: 250px; touch-action: none; cursor: crosshair; }
+    .pad-cap { position: absolute; left: 10px; top: 7px; font-size: 12.5px; color: #9a9a9a; pointer-events: none; }
+    .pad-clear {
+      position: absolute; right: 7px; top: 6px; border: 1px solid #c8c8c8; border-radius: 4px;
+      background: #fff; color: #4a4a4a; font: inherit; font-size: 13px; padding: 4px 10px; cursor: pointer;
+    }
+    .entry-wrap { display: flex; gap: 18px; align-items: flex-start; margin-top: 16px; flex-wrap: wrap; }
+    .entries { flex: 1; min-width: 210px; display: grid; gap: 10px; }
+    .entry { display: flex; align-items: center; gap: 10px; }
+    .entry-label { min-width: 26px; font-size: 18px; font-weight: 600; color: #1a1a1a; }
+    .entry-box {
+      flex: 1; min-height: 50px; display: flex; align-items: center; padding: 0 14px;
+      background: #fff; border: 1px solid #c8c8c8; border-radius: 4px; cursor: pointer;
+      font-size: 22px; color: #1a1a1a; font-variant-numeric: tabular-nums;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .entry-box.active { border: 2px solid #3b82f6; background: #eff6ff; padding: 0 13px; }
+    .entry-box.key  { color: #157f3d; font-weight: 600; border-color: #9ad0ae; }
+    .entry-box.miss { color: #c0271c; border-color: #e6a9a3; }
+    .entry-box .ph { font-size: 15px; color: #a9a9a9; }
+    .entry-caret { display: inline-block; width: 2px; height: 24px; background: #3b82f6; margin-left: 1px; animation: blink 1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .numpad { display: grid; grid-template-columns: repeat(3, 64px); gap: 8px; }
+    .num {
+      height: 50px; border: 1px solid #c8c8c8; border-radius: 6px; background: #fff;
+      font: inherit; font-size: 21px; color: #1a1a1a; cursor: pointer;
+      -webkit-tap-highlight-color: transparent; transition: background 0.1s;
+    }
+    .num:active { background: #e8edf5; }
+    .num.zero { grid-column: span 2; }
+    .num.del { font-size: 15px; color: #4a4a4a; }
+
+    /* The stage: test card, scratch paper, and the Back / Next row.
+       Upright: card, then (on questions he works out) the scratch paper,
+       then the buttons. */
+    .stage {
+      flex: 1; display: grid; grid-template-columns: minmax(0, 1fr);
+      grid-template-areas: "card" "pad" "foot"; grid-template-rows: auto auto 1fr;
+    }
+    .stage-card { grid-area: card; min-width: 0; }
+    .stage-pad  { grid-area: pad; min-width: 0; display: none; }
+    .stage.shows-work .stage-pad { display: block; }
+    .stage-pad .pad { margin: 0 0 4px; }
+    .stage-foot { grid-area: foot; align-self: end; }
+
+    /* Landscape iPad in a browser with tabs — how he actually uses it.
+       Scratch paper down the whole left side on every question; the test,
+       looking just as it always has, on the right with its buttons. */
+    @media (orientation: landscape) and (min-width: 900px) {
+      .game-shell { max-width: 1200px; }
+      .stage {
+        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+        grid-template-areas: "pad card" "pad foot"; grid-template-rows: auto 1fr;
+        column-gap: 22px;
+      }
+      .stage-pad { display: block; align-self: start; position: sticky; top: 8px; }
+      .stage-pad .pad { margin: 0; }
+      .test-surface { margin-bottom: 0; }
+      /* Answer box across the top, keys in two short rows under it —
+         1-6, then 7 8 9 0 ⌫ — so a typed answer costs as little height
+         as possible. Four boxes (A-D) sit side by side. */
+      .entry-wrap { flex-direction: column; align-items: stretch; gap: 10px; }
+      .entries { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+      .numpad { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    }
+    /* Smaller iPads in landscape with tabs (~620-700px of window). */
+    @media (orientation: landscape) and (min-width: 900px) and (max-height: 700px) {
+      .audio-bar { padding: 7px 12px; margin-bottom: 8px; }
+      .q-text { font-size: 18px; line-height: 1.4; }
+      .q-figure { font-size: 15.5px; line-height: 1.45; margin-top: 8px; }
+      .bank { gap: 8px; margin: 9px 0 10px; }
+      .chip { padding: 8px 12px; }
+      .blank { height: 40px; }
+      .drag-line { line-height: 1.85; }
+      .entry-wrap { margin-top: 9px; gap: 8px; }
+    }
+
     /* Review sheet extras (the shared .rev styles live in styles.css) */
     /* A select-all answer lists one choice per line. */
     .rev-line, .why { white-space: pre-line; }
@@ -178,7 +252,11 @@
       .chip { padding: 10px 14px; }
       .blank { height: 44px; }
       .drag-line { line-height: 2.2; }
-      .btn-sec { padding: 13px; }
+      .pad canvas { height: 190px; }
+      .entry-wrap { margin-top: 12px; }
+      .entry-box { min-height: 44px; }
+      .num { height: 44px; }
+      .numpad { gap: 6px; }
       .why { margin-top: 13px; padding: 10px 12px; }
       .verdict { margin-bottom: 10px; }
     }
@@ -188,7 +266,6 @@
       .bank { margin: 11px 0 12px; }
       .choices { margin-top: 10px; }
       .drag-line { line-height: 2; }
-      .btn-sec { padding: 11px; font-size: 16px; }
     }
   </style>
 </head>
@@ -220,9 +297,11 @@
      ============================================================ */
 
   let TITLE = "Math Practice Test";
-  let questions = [];
+  let SOURCE = null;     // the content file as loaded
+  let questions = [];    // this attempt's questions
   let KID = null, SETID = null;
   let answers = [], revealed = false, index = 0, finished = false, reward = null;
+  let pads = [], activeEntry = 0;   // scratch-pad strokes per question; which answer box is taking keys
 
   const $ = id => document.getElementById(id);
   const synth = window.speechSynthesis;
@@ -231,6 +310,7 @@
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
+  const commas = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   const sameSet = (a, b) =>
     a.length === b.length && [...a].sort().every((v, i) => v === [...b].sort()[i]);
 
@@ -242,6 +322,7 @@
 
   function speakable(s) {
     return String(s)
+      .replace(/\s*[☐□]\s*/g, " what number ")
       .replace(/\s*≥\s*/g, " is greater than or equal to ")
       .replace(/\s*≤\s*/g, " is less than or equal to ")
       .replace(/\s*≠\s*/g, " is not equal to ")
@@ -262,6 +343,7 @@
 
   function textFor(q, key) {
     if (key.startsWith("c")) return speakable(q.choices[Number(key.slice(1))]);
+    if (q.say) return speakable(q.say);     // a figure that reads badly gets its own words
     const parts = [speakable(q.prompt)];
     if (q.figure) parts.push(speakable(q.figure));
     if (q.template) parts.push(q.template.map(speakable).join(". "));
@@ -328,32 +410,70 @@
   function blankAnswer(q) {
     if (q.type === "multi") return [];
     if (q.type === "drag")  return q.answers.map(() => null);
+    if (q.type === "work")  return q.entries.map(() => "");
     return null;
   }
   function isAnswered(q, a) {
     if (q.type === "multi") return a && a.length > 0;
     if (q.type === "drag")  return a && a.every(v => v !== null);
+    if (q.type === "work")  return a && a.every(v => v !== "");
     return a !== null;
   }
+  // A typed number is right if it matches the answer, or one of the other
+  // answers the question accepts (an estimate can fairly go more than one way).
+  const entryRight = (e, typed) =>
+    typed !== "" && [e.answer, ...(e.accept || [])].includes(Number(typed));
   function isRight(q, a) {
     if (!isAnswered(q, a)) return false;
     if (q.type === "multi") return sameSet(a, q.answers);
     if (q.type === "drag")  return a.every((v, i) => v === q.answers[i]);
+    if (q.type === "work")  return q.entries.every((e, i) => entryRight(e, a[i]));
     return a === q.answer;
   }
 
   /* ---------- Test flow ---------------------------------------------------- */
 
+  function validQuestion(q) {
+    if (!q || !q.prompt) return false;
+    if (q.type === "work") {
+      if (!q.entries && Number.isFinite(q.answer)) q.entries = [{ answer: q.answer, accept: q.accept }];
+      return Array.isArray(q.entries) && q.entries.length > 0 &&
+             q.entries.every(e => e && Number.isFinite(e.answer));
+    }
+    if (q.type === "drag")
+      return Array.isArray(q.bank) && Array.isArray(q.template) && Array.isArray(q.answers);
+    if (!Array.isArray(q.choices) || q.choices.length < 2) return false;
+    return q.type === "multi"
+      ? Array.isArray(q.answers) && q.answers.length > 0
+      : Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.choices.length;
+  }
+
+  /* A content file either lists its questions, or has a generate() that
+     writes a fresh set of numbers each time it's called. shuffle: true
+     deals the questions in a new order on every attempt. */
+  function buildQuestions() {
+    const raw = typeof SOURCE.generate === "function" ? SOURCE.generate() : SOURCE.questions;
+    const qs = (raw || []).filter(validQuestion);
+    if (!SOURCE.shuffle) return qs;
+    for (let i = qs.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [qs[i], qs[j]] = [qs[j], qs[i]];
+    }
+    return qs;
+  }
+
   function start() {
+    questions = buildQuestions();      // a new test on every attempt
     answers = questions.map(blankAnswer);
     revealed = false;
-    index = 0; finished = false; reward = null; armed = null;
+    pads = questions.map(() => []);
+    index = 0; finished = false; reward = null; armed = null; activeEntry = 0;
     stopSpeech(); render();
   }
 
   function goTo(i) {
     if (i < 0 || i >= questions.length) return;
-    stopSpeech(); index = i; armed = null; render();
+    stopSpeech(); index = i; armed = null; activeEntry = 0; render();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -382,10 +502,71 @@
 
   // Back to the results from a question he reopened. Not a second hand-in,
   // so nothing is recorded again.
+  // "Question 7 is still blank" / "Questions 3, 7 and 12 are still blank"
+  function blankNote(nums, hint) {
+    if (!nums.length) return "";
+    const who = nums.length === 1 ? `Question ${nums[0]} is`
+      : nums.length > 6 ? `${nums.length} questions are`
+      : `Questions ${nums.slice(0, -1).join(", ")} and ${nums[nums.length - 1]} are`;
+    return `<div class="gap-note">${who} still blank — ${hint}, or Submit to hand it in anyway.</div>`;
+  }
+
   function showResults() {
     stopSpeech(); finished = true; render();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
+
+  /* ---------- Show your work ----------------------------------------------- */
+
+  function keyIn(d) {
+    const q = questions[index];
+    if (revealed || q.type !== "work") return;
+    const a = answers[index], cur = a[activeEntry];
+    if (d === "del") a[activeEntry] = cur.slice(0, -1);
+    else if (cur.length < 7 && !(cur === "" && d === "0")) a[activeEntry] = cur + d;
+    render();
+  }
+
+  const LANDSCAPE = window.matchMedia("(orientation: landscape) and (min-width: 900px)");
+
+  function mountPad() {
+    const c = document.querySelector(".pad canvas");
+    if (!c) return;
+    c.style.height = "";
+    if (LANDSCAPE.matches) {
+      const top = c.getBoundingClientRect().top + window.scrollY;
+      c.style.height = Math.max(240, window.innerHeight - top - 14) + "px";
+    }
+    if (!c.clientWidth) return;                 // hidden on this question (upright, no work)
+    const dpr = window.devicePixelRatio || 1;
+    c.width = c.clientWidth * dpr; c.height = c.clientHeight * dpr;
+    const ctx = c.getContext("2d");
+    ctx.scale(dpr, dpr);
+    ctx.lineWidth = 2.4; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.strokeStyle = "#1f2a44";
+    const strokes = pads[index];
+    const seg = (p, q) => { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke(); };
+    strokes.forEach(s => s.length === 1 ? seg(s[0], { x: s[0].x + 0.1, y: s[0].y }) :
+                                          s.forEach((p, i) => i && seg(s[i - 1], p)));
+    if (revealed) return;                       // his work stays visible, but it's done
+
+    let cur = null;
+    const at = e => { const r = c.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+    c.onpointerdown = e => {
+      e.preventDefault(); c.setPointerCapture(e.pointerId);
+      cur = [at(e)]; strokes.push(cur); seg(cur[0], { x: cur[0].x + 0.1, y: cur[0].y });
+    };
+    c.onpointermove = e => {
+      if (!cur) return;
+      e.preventDefault();
+      // A pencil reports many points between frames; use them all for smooth lines.
+      (e.getCoalescedEvents ? e.getCoalescedEvents() : [e]).forEach(ev => {
+        const p = at(ev); seg(cur[cur.length - 1], p); cur.push(p);
+      });
+    };
+    c.onpointerup = c.onpointercancel = () => { cur = null; };
+  }
+
+  window.addEventListener("resize", () => { if (!finished) mountPad(); });
 
   /* ---------- Drag to fill -------------------------------------------------
      One gesture handles both habits: drag a number into a blank (what the
@@ -517,6 +698,9 @@
   }
 
   function answerLine(q) {
+    if (q.type === "work")
+      return q.entries.length === 1 ? commas(q.entries[0].answer)
+        : q.entries.map(e => `${e.label} = ${commas(e.answer)}`).join("\n");
     if (q.type === "drag")
       return q.answers.map((v, i) => `${i === 0 ? "" : ""}${v}`).join(" , ");
     const L = ["A", "B", "C", "D", "E", "F"];
@@ -529,6 +713,11 @@
   // What he put, written the same way as answerLine so the two lines compare.
   function givenLine(q, a) {
     const L = ["A", "B", "C", "D", "E", "F"];
+    if (q.type === "work") {
+      if (!a || a.every(v => v === "")) return "Left blank";
+      return q.entries.length === 1 ? commas(a[0])
+        : q.entries.map((e, i) => `${e.label} = ${a[i] === "" ? "—" : commas(a[i])}`).join("\n");
+    }
     if (q.type === "drag")
       return a && a.some(v => v !== null) ? a.map(v => v === null ? "—" : v).join(" , ") : "Left blank";
     if (q.type === "multi")
@@ -559,6 +748,34 @@
     return `<div class="review-cap">Review — every question</div>${rows}`;
   }
 
+  function padHtml() {
+    return `<div class="pad">
+      <canvas aria-label="Scratch paper"></canvas>
+      <div class="pad-cap">Scratch paper</div>
+      ${revealed ? "" : `<button class="pad-clear" data-act="clearpad">Clear</button>`}
+    </div>`;
+  }
+
+  function workHtml(q) {
+    const a = answers[index];
+    const rows = q.entries.map((e, i) => {
+      const typed = a[i];
+      const state = revealed ? (entryRight(e, typed) ? "key" : "miss") : (i === activeEntry ? "active" : "");
+      const shown = typed ? commas(typed) : (revealed ? "" : `<span class="ph">${q.entries.length > 1 ? "Tap, then type" : "Type your answer"}</span>`);
+      const caret = !revealed && i === activeEntry ? `<span class="entry-caret"></span>` : "";
+      return `<div class="entry">
+        ${e.label ? `<span class="entry-label">${esc(e.label)}</span>` : ""}
+        <div class="entry-box ${state}" data-act="entry" data-e="${i}">${typed ? shown + caret : caret + shown}</div>
+      </div>`;
+    }).join("");
+    const keys = revealed ? "" : `<div class="numpad">
+      ${["1","2","3","4","5","6","7","8","9"].map(d => `<button class="num" data-act="digit" data-d="${d}">${d}</button>`).join("")}
+      <button class="num zero" data-act="digit" data-d="0">0</button>
+      <button class="num del" data-act="digit" data-d="del" aria-label="Delete">⌫</button>
+    </div>`;
+    return `<div class="entry-wrap"><div class="entries">${rows}</div>${keys}</div>`;
+  }
+
   function questionCard(q) {
     const done = revealed;
     const right = done && isRight(q, answers[index]);
@@ -567,7 +784,7 @@
                : `<div class="verdict wrong">${CROSS}Incorrect</div>`)
       : "";
     const noVoice = synth ? "" : `<div class="no-voice">Read-aloud needs Chrome or Safari.</div>`;
-    const body = q.type === "drag" ? dragHtml(q) : choicesHtml(q);
+
 
     let why = "";
     if (done && !right) {
@@ -577,12 +794,12 @@
       why = `<div class="why">${esc(q.explain)}</div>`;
     }
 
-    return `<div class="test-surface">
-      ${verdict}${audioBar("q", false)}${noVoice}
+    const head = `${verdict}${audioBar("q", false)}${noVoice}
       <div class="q-text">${promptHtml(q)}</div>
-      ${q.figure ? `<pre class="q-figure">${esc(q.figure)}</pre>` : ""}
-      ${body}${why}
-    </div>`;
+      ${q.figure ? `<pre class="q-figure">${esc(q.figure)}</pre>` : ""}`;
+
+    const body = q.type === "drag" ? dragHtml(q) : q.type === "work" ? workHtml(q) : choicesHtml(q);
+    return `<div class="test-surface">${head}${body}${why}</div>`;
   }
 
   function resultsScreen() {
@@ -622,29 +839,35 @@
     const q = questions[index];
     const last = index === questions.length - 1;
     const answered = questions.filter((qq, i) => isAnswered(qq, answers[i])).length;
-    const ready = isAnswered(q, answers[index]);
-    const off = ready ? "" : 'disabled style="opacity:.45"';
-
+    // Next always works, so he can skip a question and come back to it.
+    // The last question hands the test in with Submit.
     let mainBtn, note = "";
     if (revealed) {
       mainBtn = `<button class="btn-primary submit" data-act="results">Back to Results</button>`;
     } else if (last) {
-      mainBtn = `<button class="btn-primary submit" data-act="finish" ${off}>See Results</button>`;
-      const left = questions.length - answered;
-      if (left > 0 && ready)
-        note = `<div class="gap-note">${left} question${left === 1 ? "" : "s"} still blank — tap a number at the top to go back.</div>`;
+      mainBtn = `<button class="btn-primary submit" data-act="finish">Submit</button>`;
+      note = blankNote(questions.map((qq, i) => isAnswered(qq, answers[i]) ? 0 : i + 1).filter(Boolean),
+                       "tap a number at the top to go back");
     } else {
-      mainBtn = `<button class="btn-primary" data-act="next" ${off}>Next ›</button>`;
+      mainBtn = `<button class="btn-primary" data-act="next">Next ›</button>`;
     }
 
+    // The card is the test; the scratch paper is beside it, like the sheet
+    // he'd have on his desk. Landscape: paper on the left, test on the right.
+    const showsWork = q.type === "work" || q.pad;
     $("app").innerHTML = `${navBar(`${index + 1}/${questions.length}`)}
       <div class="progress-track"><div class="progress-fill" style="width:${answered / questions.length * 100}%"></div></div>
       <div class="progress-cap">Question ${index + 1} of ${questions.length}</div>
-      ${dots()}${questionCard(q)}${note}
-      <div class="test-foot action-bar">
-        <button class="btn-sec" data-act="prev" ${index === 0 ? "disabled" : ""}>‹ Back</button>
-        ${mainBtn}
+      ${dots()}
+      <div class="stage ${showsWork ? "shows-work" : ""}">
+        <div class="stage-card">${questionCard(q)}${note}</div>
+        <div class="stage-pad">${padHtml()}</div>
+        <div class="stage-foot test-foot action-bar">
+          <button class="btn-sec" data-act="prev" ${index === 0 ? "disabled" : ""}>‹ Back</button>
+          ${mainBtn}
+        </div>
       </div>`;
+    mountPad();
   }
 
   /* Delegated clicks — question text can hold quotes and math symbols,
@@ -660,6 +883,9 @@
       case "next":   goTo(index + 1); break;
       case "finish":  finish(); break;
       case "results": showResults(); break;
+      case "digit":   keyIn(el.dataset.d); break;
+      case "entry":   if (!revealed) { activeEntry = Number(el.dataset.e); render(); } break;
+      case "clearpad": pads[index] = []; render(); break;
       case "again":  start(); break;
       case "blank": {
         if (revealed) break;
@@ -681,16 +907,8 @@
 
   GameLoader.loadSet("../../").then(({ data, title, kidId, id }) => {
     TITLE = title; document.title = title; KID = kidId; SETID = id;
-    questions = (data.questions || []).filter(q => {
-      if (!q || !q.prompt) return false;
-      if (q.type === "drag")
-        return Array.isArray(q.bank) && Array.isArray(q.template) && Array.isArray(q.answers);
-      if (!Array.isArray(q.choices) || q.choices.length < 2) return false;
-      return q.type === "multi"
-        ? Array.isArray(q.answers) && q.answers.length > 0
-        : Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.choices.length;
-    });
-    if (!questions.length) throw new Error("This practice test has no questions yet.");
+    SOURCE = data;
+    if (!buildQuestions().length) throw new Error("This practice test has no questions yet.");
     start();
   }).catch(err => {
     $("app").innerHTML = `<div class="card err"><div class="emoji">😕</div>
