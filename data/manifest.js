@@ -12,6 +12,10 @@
         - set    = the file name in data/sets/  (without ".js")
         - title  = the button label kids see
         - engine = which game to use: "vocab", "speak", or "math"
+        - added  = the day you added it, as YYYY-MM-DD. For two weeks
+                   from that day the tile wears a NEW badge, so the kids
+                   can see what just arrived. Leave it out and the tile
+                   simply never shows the badge.
 
    An empty activities list (like Eli's Math below) shows "Coming soon".
    ============================================================ */
@@ -30,16 +34,16 @@ window.MANIFEST = {
         {
           name: "ELA",
           activities: [
-            { set: "evan-vocab-3", title: "Key Literacy Terms 3", engine: "vocab" },
-            { set: "evan-vocab-4", title: "Key Literacy Terms 4", engine: "vocab" },
-            { set: "evan-vocab-graph", title: "16 October Vocab Test List", engine: "vocab" }
+            { set: "evan-vocab-3", title: "Key Literacy Terms 3", engine: "vocab" , added: "2026-06-07" },
+            { set: "evan-vocab-4", title: "Key Literacy Terms 4", engine: "vocab" , added: "2026-06-07" },
+            { set: "evan-vocab-graph", title: "16 October Vocab Test List", engine: "vocab" , added: "2026-10-15" }
           ]
         },
         {
           name: "Math",
           activities: [
-            { set: "evan-math-topic3", title: "Topic 3 Practice Test", engine: "math" },
-            { set: "evan-math-multiply", title: "Multiply & Estimate", engine: "math" }
+            { set: "evan-math-topic3", title: "Topic 3 Practice Test", engine: "math" , added: "2026-09-21" },
+            { set: "evan-math-multiply", title: "Multiply & Estimate", engine: "math" , added: "2026-09-21" }
           ]
         }
       ]
@@ -55,7 +59,7 @@ window.MANIFEST = {
         {
           name: "ELA",
           activities: [
-            { set: "eli-sight-words", title: "Say the Word!", engine: "speak" }
+            { set: "eli-sight-words", title: "Say the Word!", engine: "speak" , added: "2026-06-07" }
           ]
         },
         {

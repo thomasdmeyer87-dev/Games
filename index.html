@@ -33,6 +33,18 @@
       return `engines/${encodeURIComponent(act.engine)}/index.html?set=${encodeURIComponent(act.set)}`;
     }
 
+    // A tile wears a NEW badge for this many days after the date in the
+    // manifest. Freshness and progress are different things: "just added"
+    // is about the tile, "not tried yet" is about the child.
+    const NEW_FOR_DAYS = 14;
+
+    function isNewlyAdded(added) {
+      if (!added) return false;                       // no date = never badged
+      const when = Date.parse(added + "T00:00:00");   // local midnight, not UTC
+      if (Number.isNaN(when)) return false;           // typo = never badged
+      return (Date.now() - when) < NEW_FOR_DAYS * 86400000;
+    }
+
     function starsMarkup(n) {
       let s = "";
       for (let i = 1; i <= 3; i++) s += `<span class="${i <= n ? "on" : "off"}">★</span>`;
@@ -44,10 +56,14 @@
       const p = window.Progress.getActivity(kidId, act.set);
       const foot = p.plays > 0
         ? `${starsMarkup(p.bestStars)}<span class="tile-best">Best ${p.bestPct}%</span>`
-        : `${starsMarkup(0)}<span class="tile-best">New</span>`;
+        : `${starsMarkup(0)}<span class="tile-best">Not tried yet</span>`;
+      const badge = isNewlyAdded(act.added) ? `<span class="badge-new">New</span>` : "";
       return `
         <a class="tile" href="${href(act)}">
-          <div class="chip" style="background:${e.bg}">${e.icon}</div>
+          <div class="tile-top">
+            <div class="chip" style="background:${e.bg}">${e.icon}</div>
+            ${badge}
+          </div>
           <div class="tile-title">${act.title}</div>
           <div class="tile-foot">${foot}</div>
         </a>`;
@@ -56,7 +72,7 @@
     function lockedTile() {
       return `
         <div class="tile locked">
-          <div class="chip">🔒</div>
+          <div class="tile-top"><div class="chip">🔒</div></div>
           <div class="tile-title">Coming soon</div>
           <div class="tile-foot"><span class="tile-best">In the works</span></div>
         </div>`;
