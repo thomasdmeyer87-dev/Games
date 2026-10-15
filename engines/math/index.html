@@ -208,9 +208,11 @@
        type: "multi"   select all      -> answers: [<index>, ...]
        type: "drag"    drag to fill    -> bank + template + answers
 
-     Feedback is immediate. He answers a question, sees Correct or
-     Incorrect straight away with the right answer and a short why,
-     then moves on. Nothing is hidden until the end.
+     Nothing is marked while he works, like the real test. He can
+     change any answer, skip around with the numbers along the top,
+     and go back. The score and a review of every question come at
+     the end. After that, tapping a question number shows that
+     question marked, with the right answer and a short why.
 
      Every question can be read aloud with the browser's built-in
      voice. Set  audioChoices: true  to put a play bar on each
@@ -220,7 +222,7 @@
   let TITLE = "Math Practice Test";
   let questions = [];
   let KID = null, SETID = null;
-  let answers = [], checked = [], index = 0, finished = false, reward = null;
+  let answers = [], revealed = false, index = 0, finished = false, reward = null;
 
   const $ = id => document.getElementById(id);
   const synth = window.speechSynthesis;
@@ -339,15 +341,12 @@
     if (q.type === "drag")  return a.every((v, i) => v === q.answers[i]);
     return a === q.answer;
   }
-  // "choice" locks in the moment he taps. The others need a Check button
-  // because he's still building a multi-part answer.
-  const needsCheckButton = q => q.type === "multi" || q.type === "drag";
 
   /* ---------- Test flow ---------------------------------------------------- */
 
   function start() {
     answers = questions.map(blankAnswer);
-    checked = questions.map(() => false);
+    revealed = false;
     index = 0; finished = false; reward = null; armed = null;
     stopSpeech(); render();
   }
@@ -360,23 +359,15 @@
 
   function pick(i) {
     const q = questions[index];
-    if (checked[index]) return;                 // already graded — locked
+    if (revealed) return;                       // handed in — answers are locked
     if (q.type === "multi") {
       const a = answers[index];
       const at = a.indexOf(i);
       at === -1 ? a.push(i) : a.splice(at, 1);
     } else {
-      answers[index] = i;
-      checked[index] = true;                    // grade it right away
+      answers[index] = i;                       // recorded, not marked
     }
     render();
-  }
-
-  function checkAnswer() {
-    const q = questions[index];
-    if (checked[index] || !isAnswered(q, answers[index])) return;
-    checked[index] = true;
-    stopSpeech(); render();
   }
 
   function finish() {
@@ -385,7 +376,14 @@
     reward = window.Progress
       ? window.Progress.record(KID, SETID, Math.round(correct / questions.length * 100))
       : { stars: 0, streak: 0, totalStars: 0 };
-    finished = true; render();
+    revealed = true; finished = true; render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // Back to the results from a question he reopened. Not a second hand-in,
+  // so nothing is recorded again.
+  function showResults() {
+    stopSpeech(); finished = true; render();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -403,7 +401,7 @@
 
   document.addEventListener("pointerdown", e => {
     const chip = e.target.closest(".chip");
-    if (!chip || checked[index]) return;
+    if (!chip || revealed) return;
     startPt = { x: e.clientX, y: e.clientY, chip, value: chip.dataset.value };
     dragging = false;
   });
@@ -458,7 +456,8 @@
 
   function dots() {
     return `<div class="qnav">${questions.map((q, i) => {
-      const state = checked[i] ? (isRight(q, answers[i]) ? "right" : "wrong") : "";
+      const state = revealed ? (isRight(q, answers[i]) ? "right" : "wrong")
+                  : isAnswered(q, answers[i]) ? "answered" : "";
       return `<button class="qdot ${state} ${i === index && !finished ? "current" : ""}"
         data-act="goto" data-i="${i}" aria-label="Question ${i + 1}">${i + 1}</button>`;
     }).join("")}</div>`;
@@ -470,7 +469,7 @@
   }
 
   function choicesHtml(q) {
-    const a = answers[index], done = checked[index];
+    const a = answers[index], done = revealed;
     return `<div class="choices">${q.choices.map((c, i) => {
       const on = q.type === "multi" ? a.includes(i) : a === i;
       const mark = q.type === "multi" ? check(on) : radio(on);
@@ -494,7 +493,7 @@
   }
 
   function dragHtml(q) {
-    const a = answers[index], done = checked[index];
+    const a = answers[index], done = revealed;
     const bank = done ? "" : `<div class="bank">${q.bank.map(v =>
       `<div class="chip ${armed === v ? "armed" : ""}" data-value="${esc(v)}">${esc(v)}</div>`
     ).join("")}</div>`;
@@ -561,7 +560,7 @@
   }
 
   function questionCard(q) {
-    const done = checked[index];
+    const done = revealed;
     const right = done && isRight(q, answers[index]);
     const verdict = done
       ? (right ? `<div class="verdict right">${TICK}Correct</div>`
@@ -621,27 +620,27 @@
     if (finished) { $("app").innerHTML = resultsScreen(); return; }
 
     const q = questions[index];
-    const done = checked[index];
     const last = index === questions.length - 1;
-    const graded = checked.filter(Boolean).length;
-    const score = questions.reduce((n, qq, i) => n + (checked[i] && isRight(qq, answers[i]) ? 1 : 0), 0);
+    const answered = questions.filter((qq, i) => isAnswered(qq, answers[i])).length;
+    const ready = isAnswered(q, answers[index]);
+    const off = ready ? "" : 'disabled style="opacity:.45"';
 
-    let mainBtn;
-    if (!done && needsCheckButton(q)) {
-      const ready = isAnswered(q, answers[index]);
-      mainBtn = `<button class="btn-primary submit" data-act="check" ${ready ? "" : "disabled style=opacity:.45"}>Check Answer</button>`;
-    } else if (done && last) {
-      mainBtn = `<button class="btn-primary submit" data-act="finish">See Results</button>`;
-    } else if (done) {
-      mainBtn = `<button class="btn-primary" data-act="next">Next ›</button>`;
+    let mainBtn, note = "";
+    if (revealed) {
+      mainBtn = `<button class="btn-primary submit" data-act="results">Back to Results</button>`;
+    } else if (last) {
+      mainBtn = `<button class="btn-primary submit" data-act="finish" ${off}>See Results</button>`;
+      const left = questions.length - answered;
+      if (left > 0 && ready)
+        note = `<div class="gap-note">${left} question${left === 1 ? "" : "s"} still blank — tap a number at the top to go back.</div>`;
     } else {
-      mainBtn = `<button class="btn-primary" data-act="next" disabled style="opacity:.45">Next ›</button>`;
+      mainBtn = `<button class="btn-primary" data-act="next" ${off}>Next ›</button>`;
     }
 
-    $("app").innerHTML = `${navBar(`${score}/${graded}`)}
-      <div class="progress-track"><div class="progress-fill" style="width:${graded / questions.length * 100}%"></div></div>
+    $("app").innerHTML = `${navBar(`${index + 1}/${questions.length}`)}
+      <div class="progress-track"><div class="progress-fill" style="width:${answered / questions.length * 100}%"></div></div>
       <div class="progress-cap">Question ${index + 1} of ${questions.length}</div>
-      ${dots()}${questionCard(q)}
+      ${dots()}${questionCard(q)}${note}
       <div class="test-foot action-bar">
         <button class="btn-sec" data-act="prev" ${index === 0 ? "disabled" : ""}>‹ Back</button>
         ${mainBtn}
@@ -659,11 +658,11 @@
       case "goto":   if (finished) finished = false; goTo(Number(el.dataset.i)); break;
       case "prev":   goTo(index - 1); break;
       case "next":   goTo(index + 1); break;
-      case "check":  checkAnswer(); break;
-      case "finish": finish(); break;
+      case "finish":  finish(); break;
+      case "results": showResults(); break;
       case "again":  start(); break;
       case "blank": {
-        if (checked[index]) break;
+        if (revealed) break;
         const slot = Number(el.dataset.slot);
         if (armed !== null) placeInBlank(slot, armed);
         else { answers[index][slot] = null; render(); }

@@ -14,8 +14,8 @@ Instead of one big file per game, the site is split into two parts:
   - `engines/speak/`  — a word appears, the child says it out loud and the
     browser checks it (needs Chrome or Safari + a microphone).
   - `engines/math/`   — a practice test built to look like the real online
-    test: tap ▶ to hear the question read aloud, answer, and get told
-    right or wrong straight away.
+    test: tap ▶ to hear the question read aloud and answer. Nothing is
+    marked until he taps See Results at the end.
 - **Content** (in `data/sets/`) — the *material* for one assignment, e.g. a
   word list or a set of definitions. These are tiny files you edit often.
 
@@ -167,13 +167,12 @@ the thing you do often, now shows up at once.
   is the question card inside `engines/math/`, which copies the plain look of
   the real online test on purpose, so the format is familiar on test day. The
   menu bar and the results screen there still use the shared style.
-- **Every one of Evan's games ends with the score and the correct answers.**
-  The results screen shows the score, then a review sheet listing every
-  question: a tick or a cross, what he put, and the right answer. Build it
-  from the shared `.review-cap` / `.rev` styles in `assets/styles.css` so the
-  sheet looks the same in every game. Whether a game also marks answers as he
-  goes is per game: math does (feedback after each question was asked for);
-  vocab doesn't (marks only at the end, like the real test).
+- **Evan's games mark nothing until the end.** No "Correct" or "Incorrect"
+  after a question, no running score, nothing coloured red or green while he
+  works. When he finishes, the results screen shows the score, then a review
+  sheet listing every question: a tick or a cross, what he put, and the right
+  answer. Build it from the shared `.review-cap` / `.rev` styles in
+  `assets/styles.css` so the sheet looks the same in every game.
 - **The button that moves you on lives in an `.action-bar`.** On an iPad with
   Safari's tab bar showing, a tall question used to push Next off the bottom
   of the screen. The engine shell fills exactly the visible window and the
