@@ -16,32 +16,112 @@
 
     .prompt { font-size: 15px; font-weight: 600; color: var(--text-2); margin: 22px 2px 12px; }
 
+    /* ---- Multiple choice ---- */
     .option {
       display: block; width: 100%; text-align: left;
       background: var(--card); border: none; border-radius: 14px;
       box-shadow: var(--shadow); padding: 15px 16px; margin-bottom: 10px;
       font-family: inherit; font-size: 17px; font-weight: 500; color: var(--text);
       cursor: pointer; -webkit-tap-highlight-color: transparent;
-      transition: opacity 0.15s ease, transform 0.1s ease;
+      transition: box-shadow 0.15s ease, transform 0.1s ease;
     }
-    .option:active:not(:disabled) { transform: scale(0.99); }
-    .option:disabled { cursor: default; }
-    .option.correct { background: #e7f8ed; box-shadow: inset 0 0 0 2px #34c759; color: #16833a; }
-    .option.wrong   { background: #fdecea; box-shadow: inset 0 0 0 2px #ff3b30; color: #c0271c; }
-    .option.dimmed  { opacity: 0.45; }
+    .option:active { transform: scale(0.99); }
+    .option.picked { box-shadow: inset 0 0 0 2.5px var(--accent), var(--shadow); font-weight: 700; }
 
-    .feedback { text-align: center; font-size: 16px; font-weight: 600; margin: 6px 0 14px; min-height: 1.2em; }
-    .feedback.ok  { color: #16833a; }
-    .feedback.no  { color: #c0271c; }
+    /* ---- Spell it in ----
+       There is deliberately no <input> anywhere. The letters are buttons, so
+       iOS never offers its keyboard — which means no dictation and no
+       autocorrect quietly fixing a misspelling. */
+    .spell-wrap { display: flex; gap: 18px; align-items: flex-start; margin-top: 18px; }
+    .spell-main { flex: 1; min-width: 0; }
 
-    .done { text-align: center; padding: 40px 24px; }
-    .done .emoji { font-size: 60px; }
-    .done .pct { font-size: 52px; font-weight: 800; letter-spacing: -0.02em; margin: 6px 0 2px; }
-    .done .score { font-size: 17px; color: var(--text-2); font-weight: 600; }
-    .done .msg { font-size: 16px; color: var(--text-2); margin: 14px 0 26px; }
+    .answer-box {
+      min-height: 62px; background: var(--card); border-radius: 14px;
+      box-shadow: var(--shadow); padding: 14px 16px; display: flex;
+      align-items: center; flex-wrap: wrap; gap: 1px;
+      font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 24px; font-weight: 600; letter-spacing: 0.02em; color: var(--text);
+      word-break: break-all;
+    }
+    .answer-box .placeholder { font-family: var(--font); font-size: 16px; font-weight: 600; color: #b9bdcc; letter-spacing: 0; }
+    .caret { display: inline-block; width: 2px; height: 26px; background: var(--accent); animation: blink 1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
 
-    .shake { animation: shake 0.4s ease; }
-    @keyframes shake { 0%,100%{transform:translateX(0);} 25%{transform:translateX(-7px);} 75%{transform:translateX(7px);} }
+    .keys { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; margin-top: 14px; }
+    .key {
+      border: none; border-radius: 11px; background: var(--card); box-shadow: var(--shadow-sm);
+      font-family: inherit; font-size: 18px; font-weight: 700; color: var(--text);
+      padding: 13px 0; cursor: pointer; -webkit-tap-highlight-color: transparent;
+      text-transform: lowercase; transition: transform 0.1s ease, filter 0.1s ease;
+    }
+    .key:active { transform: scale(0.93); filter: brightness(0.96); }
+    .key.wide { grid-column: span 2; background: #e8eaf4; color: var(--text-2); font-size: 15px; }
+
+    .bank {
+      flex: none; width: 190px; background: var(--card); border-radius: 14px;
+      box-shadow: var(--shadow-sm); padding: 14px 16px;
+    }
+    .bank-cap {
+      font-size: 11.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-2); margin-bottom: 9px;
+    }
+    .bank ul { list-style: none; margin: 0; padding: 0; }
+    .bank li { font-size: 14.5px; font-weight: 600; line-height: 1.75; color: var(--text); word-break: break-all; }
+
+    @media (max-width: 700px) {
+      .spell-wrap { flex-direction: column; gap: 14px; }
+      .bank { width: 100%; }
+      .bank ul { columns: 2; column-gap: 14px; }
+    }
+
+    /* ---- Review sheet ---- */
+    .review-cap {
+      font-size: 12.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--text-2); margin: 26px 6px 10px;
+    }
+    .rev {
+      background: var(--card); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);
+      padding: 14px 16px; margin-bottom: 10px;
+    }
+    .rev-top { display: flex; align-items: flex-start; gap: 10px; }
+    .rev-mark { flex: none; line-height: 1.4; }
+    .rev-mark svg { width: 19px; height: 19px; display: block; }
+    .rev-def { font-size: 15px; font-weight: 500; line-height: 1.45; color: var(--text); }
+    .rev-line { font-size: 14.5px; font-weight: 700; margin-top: 8px; padding-left: 29px; }
+    .rev-line.bad  { color: #c0271c; }
+    .rev-line.good { color: #16833a; }
+    .rev-kind {
+      display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; color: var(--text-2); background: #eef0f8;
+      border-radius: 999px; padding: 3px 8px; margin-left: 8px; vertical-align: 2px;
+    }
+
+    /* Short window — a landscape iPad with the tab bar showing, or a split
+       view. Tighten the spacing so the whole card fits without scrolling.
+       The definition and the words keep their size; they have to stay
+       readable. */
+    @media (max-height: 780px) {
+      .prompt { margin: 14px 2px 9px; }
+      .option { padding: 12px 16px; margin-bottom: 8px; }
+      .spell-wrap { margin-top: 12px; gap: 14px; }
+      .keys { gap: 6px; margin-top: 10px; }
+      .key { padding: 10px 0; }
+      .answer-box { min-height: 54px; padding: 11px 16px; }
+      .bank { padding: 11px 14px; }
+      .bank li { line-height: 1.6; }
+    }
+    @media (max-height: 620px) {
+      .def-text { font-size: 19px; }
+      .prompt { margin: 10px 2px 7px; }
+      .option { padding: 10px 14px; margin-bottom: 6px; }
+      .keys { gap: 5px; margin-top: 8px; }
+      .key { padding: 8px 0; font-size: 17px; }
+      .answer-box { min-height: 46px; padding: 8px 14px; font-size: 21px; }
+    }
+
+    .err { text-align: center; padding: 40px 24px; }
+    .err .emoji { font-size: 60px; }
+    .err .msg { font-size: 16px; color: var(--text-2); margin: 14px 0 20px; }
   </style>
 </head>
 <body>
@@ -50,112 +130,234 @@
 <script src="../../assets/loader.js"></script>
 <script src="../../assets/progress.js"></script>
 <script>
-  const MAX_CHOICES = 6;
+  /* ============================================================
+     VOCABULARY engine.
+
+     Two rounds from the same word list:
+       1. Ten cards: read the definition, pick the word from three.
+       2. Three cards: read the definition and spell the word in,
+          with the whole word list beside you as a bank.
+
+     Nothing is marked while he works. The score and a review sheet
+     of every question come at the end, so a wrong answer early on
+     doesn't tell him what the later ones are.
+
+     Spelling is exact — a typo counts as wrong, which is the point.
+     The letters are buttons rather than a text field, so iOS never
+     offers its keyboard: no dictation, and no autocorrect silently
+     repairing a misspelling.
+     ============================================================ */
+
+  const CHOICES_PER_CARD = 3;
+  const SPELL_ROUNDS = 3;
+  const LETTERS = "abcdefghijklmnopqrstuvwxyz".split("");
+
   let TITLE = "Vocabulary";
   let terms = [];
   let KID = null, SETID = null, reward = null;
-  let deck, index, score, selected, done;
+  let deck, index, answers, typed, finished;
 
-  function shuffle(a){ return [...a].sort(() => Math.random() - 0.5); }
-  function init(){ deck = shuffle(terms); index = 0; score = 0; selected = null; done = false; reward = null; render(); }
-  function current(){ return deck[index]; }
-
-  function buildChoices(card){
-    const others = shuffle(terms.filter(t => t.word !== card.word)).map(t => t.word);
-    return shuffle([card.word, ...others.slice(0, Math.max(0, MAX_CHOICES - 1))]);
+  const $ = id => document.getElementById(id);
+  const shuffle = a => [...a].sort(() => Math.random() - 0.5);
+  function esc(s) {
+    return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
-  function handlePick(word){
-    if (selected) return;
-    selected = word;
-    const card = current();
-    const btn = document.querySelector(`[data-word="${CSS.escape(word)}"]`);
+  const TICK  = '<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#157f3d"/><path d="M5.6 10.3l2.9 2.9 5.9-6.1" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const CROSS = '<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#c0271c"/><path d="M6.8 6.8l6.4 6.4M13.2 6.8l-6.4 6.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>';
 
-    if (word === card.word) { score++; }
-    else { btn.classList.add('wrong', 'shake'); btn.addEventListener('animationend', () => btn.classList.remove('shake'), { once:true }); }
+  /* ---------- Building the round ---------------------------------------- */
 
-    document.querySelectorAll('.option').forEach(b => {
-      const w = b.getAttribute('data-word');
-      if (w === card.word) b.classList.add('correct');
-      else if (w !== word) b.classList.add('dimmed');
-      b.disabled = true;
-    });
-
-    document.querySelector('.nav-right').textContent = `${score}/${deck.length}`;
-
-    const fb = document.querySelector('.feedback');
-    const next = document.querySelector('.next-btn');
-    if (selected === card.word) { fb.textContent = '✓ Correct'; fb.className = 'feedback ok'; }
-    else { fb.textContent = `Answer: ${card.word}`; fb.className = 'feedback no'; }
-    next.textContent = (index + 1 >= deck.length) ? 'See Results' : 'Next';
-    next.style.display = 'block';
+  function buildDeck() {
+    const cards = shuffle(terms).map(t => ({ kind: "choice", term: t }));
+    const spellWords = shuffle(terms).slice(0, Math.min(SPELL_ROUNDS, terms.length));
+    return cards.concat(spellWords.map(t => ({ kind: "spell", term: t })));
   }
 
-  function handleNext(){
-    if (index + 1 >= deck.length) {
-      done = true;
-      const pct = Math.round(score / deck.length * 100);
-      reward = window.Progress ? window.Progress.record(KID, SETID, pct) : { stars: 0, streak: 0, totalStars: 0 };
-    } else { index++; selected = null; }
+  function choicesFor(card) {
+    const others = shuffle(terms.filter(t => t.word !== card.term.word)).map(t => t.word);
+    return shuffle([card.term.word, ...others.slice(0, Math.max(0, CHOICES_PER_CARD - 1))]);
+  }
+
+  // Same word, same spelling. Case and stray spaces are not the test.
+  const isRight = (card, given) =>
+    typeof given === "string" &&
+    given.trim().toLowerCase() === card.term.word.trim().toLowerCase();
+
+  /* ---------- Flow ------------------------------------------------------- */
+
+  function start() {
+    deck = buildDeck();
+    answers = deck.map(() => null);
+    index = 0; typed = ""; finished = false; reward = null;
     render();
   }
 
-  function render(){
-    const app = document.getElementById('app');
+  function pick(word) {
+    answers[index] = word;
+    render();
+  }
 
-    if (done) {
-      const pct = Math.round((score / deck.length) * 100);
-      const r = reward || { stars: 0, streak: 0, totalStars: 0, streakUp: false, isNewBest: false };
-      const head = r.stars >= 3 ? "Amazing! 🏆" : r.stars === 2 ? "Great job! 🎉" : r.stars === 1 ? "Nice work! 👍" : "Keep going! 📚";
-      const bigStars = [1,2,3].map(i => `<span class="big-star ${i <= r.stars ? "on" : ""}">★</span>`).join("");
-      const chips = [
-        r.streakUp ? `<div class="reward-chip fire">🔥 ${r.streak}-day streak</div>` : "",
-        r.isNewBest ? `<div class="reward-chip new">⭐ New best!</div>` : "",
-        `<div class="reward-chip">⭐ ${r.totalStars} total</div>`
-      ].join("");
-      app.innerHTML = `
-        <div class="nav-bar"><a class="nav-back" href="../../index.html">‹ Menu</a><div class="nav-title">${TITLE}</div><div class="nav-right"></div></div>
-        <div class="card reward">
-          <div class="reward-stars">${bigStars}</div>
-          <div class="headline">${head}</div>
-          <div class="pct">${score} of ${deck.length} correct · ${pct}%</div>
-          <div class="reward-chips">${chips}</div>
-          <button class="btn-primary" onclick="init()">Play Again</button>
-          <div style="margin-top:10px"><a class="btn-text" href="../../index.html">Back to Menu</a></div>
-        </div>`;
-      return;
-    }
+  function keyTap(ch) {
+    if (ch === "back") typed = typed.slice(0, -1);
+    else if (typed.length < 40) typed += ch;
+    render();
+  }
 
-    const card = current();
-    const choices = buildChoices(card);
-    const progress = (index / deck.length) * 100;
-    app.innerHTML = `
-      <div class="nav-bar">
-        <a class="nav-back" href="../../index.html">‹ Menu</a>
-        <div class="nav-title">${TITLE}</div>
-        <div class="nav-right">${score}/${deck.length}</div>
-      </div>
-      <div class="progress-track"><div class="progress-fill" style="width:${progress}%"></div></div>
-      <div class="progress-cap">Question ${index + 1} of ${deck.length}</div>
+  function next() {
+    if (deck[index].kind === "spell") { answers[index] = typed; typed = ""; }
+    if (index + 1 >= deck.length) return finish();
+    index++;
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function finish() {
+    const correct = deck.reduce((n, c, i) => n + (isRight(c, answers[i]) ? 1 : 0), 0);
+    reward = window.Progress
+      ? window.Progress.record(KID, SETID, Math.round(correct / deck.length * 100))
+      : { stars: 0, streak: 0, totalStars: 0 };
+    finished = true;
+    render();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* ---------- Screens ---------------------------------------------------- */
+
+  function navBar(right) {
+    return `<div class="nav-bar">
+      <a class="nav-back" href="../../index.html">‹ Menu</a>
+      <div class="nav-title">${esc(TITLE)}</div>
+      <div class="nav-right">${right || ""}</div>
+    </div>`;
+  }
+
+  function choiceScreen(card) {
+    const chosen = answers[index];
+    const opts = (card._choices || (card._choices = choicesFor(card)))
+      .map(w => `<button class="option ${chosen === w ? "picked" : ""}" data-act="pick" data-word="${esc(w)}">${esc(w)}</button>`)
+      .join("");
+    return `
       <div class="card">
         <div class="def-label">Definition</div>
-        <div class="def-text">${card.definition}</div>
+        <div class="def-text">${esc(card.term.definition)}</div>
       </div>
       <div class="prompt">Which word matches?</div>
-      ${choices.map(w => `<button class="option" data-word="${w}" onclick="handlePick('${w.replace(/'/g,"\\'")}')">${w}</button>`).join('')}
-      <div class="feedback"></div>
-      <button class="btn-primary next-btn" style="display:none" onclick="handleNext()"></button>`;
+      ${opts}`;
   }
+
+  function spellScreen(card) {
+    const shown = typed
+      ? `${esc(typed)}<span class="caret"></span>`
+      : `<span class="placeholder">Tap the letters to spell it</span>`;
+    const keys = LETTERS
+      .map(c => `<button class="key" data-act="key" data-ch="${c}">${c}</button>`)
+      .join("") + `<button class="key wide" data-act="key" data-ch="back">⌫ Delete</button>`;
+    const bank = terms.map(t => `<li>${esc(t.word)}</li>`).join("");
+    return `
+      <div class="card">
+        <div class="def-label">Definition</div>
+        <div class="def-text">${esc(card.term.definition)}</div>
+      </div>
+      <div class="prompt">Spell the word that matches. Spelling counts.</div>
+      <div class="spell-wrap">
+        <div class="spell-main">
+          <div class="answer-box">${shown}</div>
+          <div class="keys">${keys}</div>
+        </div>
+        <aside class="bank">
+          <div class="bank-cap">Word bank</div>
+          <ul>${bank}</ul>
+        </aside>
+      </div>`;
+  }
+
+  function reviewSheet() {
+    const rows = deck.map((c, i) => {
+      const given = answers[i];
+      const right = isRight(c, given);
+      const kind = c.kind === "spell" ? `<span class="rev-kind">spelled</span>` : "";
+      const yours = (given === null || given === "") ? "Left blank" : esc(given);
+      return `<div class="rev">
+        <div class="rev-top">
+          <div class="rev-mark">${right ? TICK : CROSS}</div>
+          <div class="rev-def">${esc(c.term.definition)}${kind}</div>
+        </div>
+        ${right
+          ? `<div class="rev-line good">${esc(c.term.word)}</div>`
+          : `<div class="rev-line bad">You put: ${yours}</div>
+             <div class="rev-line good">Answer: ${esc(c.term.word)}</div>`}
+      </div>`;
+    }).join("");
+    return `<div class="review-cap">Review — every question</div>${rows}`;
+  }
+
+  function resultsScreen() {
+    const correct = deck.reduce((n, c, i) => n + (isRight(c, answers[i]) ? 1 : 0), 0);
+    const pct = Math.round(correct / deck.length * 100);
+    const r = reward || { stars: 0, streak: 0, totalStars: 0 };
+    const head = r.stars >= 3 ? "Amazing! 🏆" : r.stars === 2 ? "Great job! 🎉"
+               : r.stars === 1 ? "Nice work! 👍" : "Keep going! 📚";
+    const stars = [1, 2, 3].map(i => `<span class="big-star ${i <= r.stars ? "on" : ""}">★</span>`).join("");
+    const chips = [
+      r.streakUp ? `<div class="reward-chip fire">🔥 ${r.streak}-day streak</div>` : "",
+      r.isNewBest ? `<div class="reward-chip new">⭐ New best!</div>` : "",
+      `<div class="reward-chip">⭐ ${r.totalStars} total</div>`
+    ].join("");
+    return `${navBar("")}
+      <div class="card reward">
+        <div class="reward-stars">${stars}</div>
+        <div class="headline">${head}</div>
+        <div class="pct">${correct} of ${deck.length} correct · ${pct}%</div>
+        <div class="reward-chips">${chips}</div>
+        <button class="btn-primary" data-act="again">Play Again</button>
+        <div style="margin-top:10px"><a class="btn-text" href="../../index.html">Back to Menu</a></div>
+      </div>
+      ${reviewSheet()}`;
+  }
+
+  function render() {
+    if (finished) { $("app").innerHTML = resultsScreen(); return; }
+
+    const card = deck[index];
+    const answered = card.kind === "spell" ? typed.length > 0 : answers[index] !== null;
+    const last = index + 1 >= deck.length;
+    const body = card.kind === "spell" ? spellScreen(card) : choiceScreen(card);
+
+    $("app").innerHTML = `${navBar(`${index + 1}/${deck.length}`)}
+      <div class="progress-track"><div class="progress-fill" style="width:${index / deck.length * 100}%"></div></div>
+      <div class="progress-cap">Question ${index + 1} of ${deck.length}</div>
+      ${body}
+      <div class="action-bar">
+        <button class="btn-primary" data-act="next" ${answered ? "" : "disabled"}
+          ${answered ? "" : 'style="opacity:.45"'}>
+          ${last ? "See Results" : "Next ›"}</button>
+      </div>`;
+  }
+
+  /* Delegated clicks — definitions carry quotes and brackets, so nothing is
+     interpolated into inline handlers. */
+  document.addEventListener("click", e => {
+    const el = e.target.closest("[data-act]");
+    if (!el || el.disabled) return;
+    switch (el.dataset.act) {
+      case "pick":  pick(el.dataset.word); break;
+      case "key":   keyTap(el.dataset.ch); break;
+      case "next":  next(); break;
+      case "again": start(); break;
+    }
+  });
 
   GameLoader.loadSet("../../").then(({ data, title, kidId, id }) => {
     TITLE = title; document.title = title; KID = kidId; SETID = id;
     terms = (data.terms || []).filter(t => t && t.word && t.definition);
     if (!terms.length) throw new Error("This activity has no terms yet.");
-    init();
+    start();
   }).catch(err => {
-    document.getElementById('app').innerHTML =
-      `<div class="card done"><div class="emoji">😕</div><div class="msg">${err.message}</div>
-       <a class="btn-text" href="../../index.html">Back to Menu</a></div>`;
+    $("app").innerHTML = `<div class="card err"><div class="emoji">😕</div>
+      <div class="msg">${esc(err.message)}</div>
+      <a class="btn-text" href="../../index.html">Back to Menu</a></div>`;
   });
 </script>
 </body>
