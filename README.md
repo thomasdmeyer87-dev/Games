@@ -39,8 +39,10 @@ each kid, their subjects, and which activities show up.
 3. Save, commit, push, and merge into `main`. It appears on the home screen
    automatically — see **Publishing** below for why the merge matters.
 
-To retire an assignment, just delete its line from `data/manifest.js`
-(you can leave the content file for later). A subject with no activities
+To retire an assignment, add `archived: true` to its line in
+`data/manifest.js`. The tile leaves the home screen, but the content file and
+the kid's scores stay put — delete those two words to bring it back. (Key
+Literacy Terms 3 and 4 are archived this way.) A subject with no activities
 shows "Coming soon" — that's why **Eli's Math** is a placeholder right now.
 
 ## The NEW badge
