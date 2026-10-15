@@ -179,6 +179,22 @@ body {
 }
 .action-bar > .btn-primary { flex: 1; margin: 0; }
 
+/* Back — the quieter partner to the main button in the action bar. */
+.btn-sec {
+  flex: none; min-width: 104px; border: none; border-radius: 16px;
+  background: #e8eaf4; color: var(--text-2); font-family: var(--font);
+  font-size: 17px; font-weight: 800; padding: 16px; cursor: pointer;
+  -webkit-tap-highlight-color: transparent; transition: filter 0.12s, transform 0.12s;
+}
+.btn-sec:active:not(:disabled) { filter: brightness(0.96); transform: scale(0.98); }
+.btn-sec:disabled { opacity: 0.4; cursor: default; }
+
+/* "Questions 3 and 7 are still blank" — shown above Submit. */
+.gap-note {
+  text-align: center; font-size: 14px; font-weight: 700; color: #b4741f;
+  background: #fff8e8; border-radius: 12px; padding: 11px 14px; margin-top: 14px;
+}
+
 .nav-bar { display: flex; align-items: center; gap: 8px; height: 46px; margin-bottom: 6px; }
 .nav-back { color: var(--accent); text-decoration: none; font-size: 17px; font-weight: 800; white-space: nowrap; -webkit-tap-highlight-color: transparent; }
 .nav-title { flex: 1; text-align: center; font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 6px; }
@@ -249,12 +265,12 @@ body {
   .progress-cap { margin-bottom: 12px; }
   .card { padding: 17px 18px; }
   .action-bar { padding-top: 11px; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
-  .btn-primary { padding: 13px; }
+  .btn-primary, .btn-sec { padding: 13px; }
 }
 @media (max-height: 620px) {
   .nav-bar { height: 34px; }
   .progress-cap { margin-bottom: 8px; }
   .card { padding: 14px 16px; }
   .action-bar { padding-top: 8px; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
-  .btn-primary { padding: 11px; font-size: 16px; }
+  .btn-primary, .btn-sec { padding: 11px; font-size: 16px; }
 }

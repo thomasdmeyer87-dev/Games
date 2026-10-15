@@ -116,8 +116,9 @@
        2. Three cards: read the definition and spell the word in,
           with the whole word list beside you as a bank.
 
-     Nothing is marked while he works. The score and a review sheet
-     of every question come at the end, so a wrong answer early on
+     Nothing is marked while he works. He can go back, or skip a card
+     and return to it; the last card has Submit. The score and a review
+     sheet of every question come after that, so a wrong answer early on
      doesn't tell him what the later ones are.
 
      Spelling is exact — a typo counts as wrong, which is the point.
@@ -133,7 +134,7 @@
   let TITLE = "Vocabulary";
   let terms = [];
   let KID = null, SETID = null, reward = null;
-  let deck, index, answers, typed, finished;
+  let deck, index, answers, finished;
 
   const $ = id => document.getElementById(id);
   const shuffle = a => [...a].sort(() => Math.random() - 0.5);
@@ -168,7 +169,7 @@
   function start() {
     deck = buildDeck();
     answers = deck.map(() => null);
-    index = 0; typed = ""; finished = false; reward = null;
+    index = 0; finished = false; reward = null;
     render();
   }
 
@@ -177,18 +178,30 @@
     render();
   }
 
+  // A spelling answer is kept on its card, so going back finds it as he left it.
   function keyTap(ch) {
-    if (ch === "back") typed = typed.slice(0, -1);
-    else if (typed.length < 40) typed += ch;
+    const cur = answers[index] || "";
+    if (ch === "back") answers[index] = cur.slice(0, -1);
+    else if (cur.length < 40) answers[index] = cur + ch;
     render();
   }
 
-  function next() {
-    if (deck[index].kind === "spell") { answers[index] = typed; typed = ""; }
-    if (index + 1 >= deck.length) return finish();
-    index++;
+  // Back and Next move freely — Next on an unanswered card skips it.
+  function go(i) {
+    if (i < 0 || i >= deck.length) return;
+    index = i;
     render();
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  const isBlank = a => a === null || a === "";
+  function blankNote() {
+    const nums = answers.map((a, i) => isBlank(a) ? i + 1 : 0).filter(Boolean);
+    if (!nums.length) return "";
+    const who = nums.length === 1 ? `Question ${nums[0]} is`
+      : nums.length > 6 ? `${nums.length} questions are`
+      : `Questions ${nums.slice(0, -1).join(", ")} and ${nums[nums.length - 1]} are`;
+    return `<div class="gap-note">${who} still blank — tap Back to go back, or Submit to hand it in anyway.</div>`;
   }
 
   function finish() {
@@ -226,6 +239,7 @@
   }
 
   function spellScreen(card) {
+    const typed = answers[index] || "";
     const shown = typed
       ? `${esc(typed)}<span class="caret"></span>`
       : `<span class="placeholder">Tap the letters to spell it</span>`;
@@ -299,18 +313,21 @@
     if (finished) { $("app").innerHTML = resultsScreen(); return; }
 
     const card = deck[index];
-    const answered = card.kind === "spell" ? typed.length > 0 : answers[index] !== null;
     const last = index + 1 >= deck.length;
     const body = card.kind === "spell" ? spellScreen(card) : choiceScreen(card);
 
+    const done = answers.filter(a => !isBlank(a)).length;
+
     $("app").innerHTML = `${navBar(`${index + 1}/${deck.length}`)}
-      <div class="progress-track"><div class="progress-fill" style="width:${index / deck.length * 100}%"></div></div>
+      <div class="progress-track"><div class="progress-fill" style="width:${done / deck.length * 100}%"></div></div>
       <div class="progress-cap">Question ${index + 1} of ${deck.length}</div>
       ${body}
+      ${last ? blankNote() : ""}
       <div class="action-bar">
-        <button class="btn-primary" data-act="next" ${answered ? "" : "disabled"}
-          ${answered ? "" : 'style="opacity:.45"'}>
-          ${last ? "See Results" : "Next ›"}</button>
+        <button class="btn-sec" data-act="prev" ${index === 0 ? "disabled" : ""}>‹ Back</button>
+        ${last
+          ? `<button class="btn-primary" data-act="submit">Submit</button>`
+          : `<button class="btn-primary" data-act="next">Next ›</button>`}
       </div>`;
   }
 
@@ -322,7 +339,9 @@
     switch (el.dataset.act) {
       case "pick":  pick(el.dataset.word); break;
       case "key":   keyTap(el.dataset.ch); break;
-      case "next":  next(); break;
+      case "next":   go(index + 1); break;
+      case "prev":   go(index - 1); break;
+      case "submit": finish(); break;
       case "again": start(); break;
     }
   });

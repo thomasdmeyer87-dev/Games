@@ -49,6 +49,7 @@ window.MANIFEST = {
         {
           name: "Math",
           activities: [
+            { set: "evan-math-topic4", title: "Topic 4 Practice Test", engine: "math" , added: "2026-10-15" },
             // Archived 2026-10-15. Scores are kept; delete  archived: true  to bring either back.
             { set: "evan-math-topic3", title: "Topic 3 Practice Test", engine: "math" , added: "2026-09-21", archived: true },
             { set: "evan-math-multiply", title: "Multiply & Estimate", engine: "math" , added: "2026-09-21", archived: true }

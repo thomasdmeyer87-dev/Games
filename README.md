@@ -14,8 +14,8 @@ Instead of one big file per game, the site is split into two parts:
   - `engines/speak/`  — a word appears, the child says it out loud and the
     browser checks it (needs Chrome or Safari + a microphone).
   - `engines/math/`   — a practice test built to look like the real online
-    test: tap ▶ to hear the question read aloud and answer. Nothing is
-    marked until he taps See Results at the end.
+    test: tap ▶ to hear the question read aloud and answer, with scratch
+    paper beside the question. Nothing is marked until he taps Submit.
 - **Content** (in `data/sets/`) — the *material* for one assignment, e.g. a
   word list or a set of definitions. These are tiny files you edit often.
 
@@ -63,11 +63,42 @@ script in `index.html`.
 
 ## Writing a math practice test
 
-`data/sets/evan-math-topic3.js` mirrors Evan's Topic 3 Assessment Practice
-(Savvas enVision, pp. 127-128) one question at a time — same pattern and
-standard as the paper, different numbers. Its header comment maps each
-question back to the item it came from, so when a new topic comes home you
-can see how a paper test turns into a content file.
+### The rules for every math test from now on
+
+When a new topic's Assessment Practice comes home, it becomes a test like
+this. `data/sets/evan-math-topic4.js` is the model to copy.
+
+1. **One kind of problem per item on the paper**, worded the way the paper
+   words it. The header comment maps each paper item to its kind.
+2. **Anything crossed out on the paper is left out** — that *type* of problem
+   doesn't appear on the test at all. Ask if a mark is ambiguous: on Topic 4,
+   lines through the words of #21 and #25 were Evan doodling, not a cross-out.
+3. **A new test every time he opens it.** The content file has a
+   `generate()` that writes fresh numbers on each attempt, and `shuffle: true`
+   deals the questions in a new order. Answer choices are rebuilt too, with
+   the right letter spread evenly over A-D, and wrong choices that copy real
+   slips (one group too many or too few, a forgotten partial product, a
+   place-value or adding mistake).
+4. **Scratch paper wherever he showed work on the paper.** If he drew an area
+   model or wrote working for an item, it gets the scratch pad. Open-response
+   items are `type: "work"`: scratch paper plus an answer he types on on-screen
+   number keys — never a text field, so the iPad keyboard (and talk-to-text)
+   never appears. A multiple-choice item he worked out gets `pad: true`.
+5. **It has to look like his real test.** The question card copies the plain
+   online-test look; don't restyle it.
+6. **Built for how he uses it: a standard iPad, landscape, in a browser with
+   tabs** — a window about 1080-1180 wide and 730-740 tall. In landscape the
+   scratch paper fills the left side on every question and the test sits on
+   the right. Check that every question fits that window without scrolling.
+7. **Check every answer key by machine.** Run `generate()` a few thousand
+   times and re-work each answer from the numbers in the question; a wrong
+   key teaches the wrong thing.
+
+`data/sets/evan-math-topic3.js` is the older, fixed style — one hand-written
+question per paper item, the same every time. It still works, but new topics
+should be generated.
+
+### The question format
 
 Every question needs a `type`:
 
@@ -76,6 +107,7 @@ Every question needs a `type`:
 | `"choice"` | Picks one answer               | `choices`, `answer` (an index)     |
 | `"multi"`  | Picks every answer that fits   | `choices`, `answers` (index list)  |
 | `"drag"`   | Drags numbers into blanks      | `bank`, `template`, `answers`      |
+| `"work"`   | Works it out on scratch paper, types the answer | `answer` (a number), or `entries` |
 
 Useful extras:
 
@@ -88,6 +120,14 @@ Useful extras:
 - `mono: true` on a `"drag"` question lines the blanks up in a column, for a
   vertical algorithm. A template line of `"---"` draws the rule above the
   total.
+- `pad: true` on a `"choice"` question shows the scratch paper with it (in
+  landscape every question has scratch paper; upright, only these and
+  `"work"` questions do).
+- `entries` on a `"work"` question asks for more than one number:
+  `[{ label: "A", answer: 100 }, { label: "B", answer: 50 }]`. `accept` lists
+  other numbers that also count — `{ answer: 80000, accept: [72000] }` for an
+  estimate that can fairly be rounded two ways.
+- `generate` and `shuffle` on the set itself: see the rules above.
 - `\n` inside `prompt` starts a new line.
 - In a `"drag"` question, `template` is the lines of text and `{0} {1} {2}`
   mark where the blanks go; `answers` lists what belongs in each one. The
@@ -169,10 +209,13 @@ the thing you do often, now shows up at once.
   menu bar and the results screen there still use the shared style.
 - **Evan's games mark nothing until the end.** No "Correct" or "Incorrect"
   after a question, no running score, nothing coloured red or green while he
-  works. When he finishes, the results screen shows the score, then a review
-  sheet listing every question: a tick or a cross, what he put, and the right
-  answer. Build it from the shared `.review-cap` / `.rev` styles in
-  `assets/styles.css` so the sheet looks the same in every game.
+  works. He can go **Back**, and **Next** skips a question he wants to come
+  back to; the last question has a **Submit** button, with a note above it
+  naming anything still blank. After Submit, the results screen shows the
+  score, then a review sheet listing every question: a tick or a cross, what
+  he put, and the right answer. Build it from the shared `.review-cap` /
+  `.rev` styles in `assets/styles.css` so the sheet looks the same in every
+  game.
 - **The button that moves you on lives in an `.action-bar`.** On an iPad with
   Safari's tab bar showing, a tall question used to push Next off the bottom
   of the screen. The engine shell fills exactly the visible window and the
