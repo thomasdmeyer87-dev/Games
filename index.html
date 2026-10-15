@@ -20,9 +20,24 @@
     <div class="kid-grid" id="kidGrid"></div>
   </main>
 
-  <script src="data/manifest.js"></script>
   <script src="assets/progress.js"></script>
   <script>
+    // GitHub Pages serves everything with cache-control: max-age=600, and
+    // there is no way to change that on a static site. A browser that has
+    // been here before will therefore happily show a ten-minute-old menu,
+    // so a newly added assignment just isn't there. The content files are
+    // a couple of kilobytes, so ask for the current copy every time rather
+    // than let that happen. Code files keep the normal caching.
+    function freshScript(src) {
+      return new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = src + (src.includes("?") ? "&" : "?") + "v=" + Date.now();
+        s.onload = resolve;
+        s.onerror = () => reject(new Error("Could not load " + src));
+        document.head.appendChild(s);
+      });
+    }
+
     const ENGINE = {
       vocab: { icon: "📖", bg: "var(--tile-vocab)" },
       speak: { icon: "🗣️", bg: "var(--tile-speak)" },
@@ -56,7 +71,7 @@
       const p = window.Progress.getActivity(kidId, act.set);
       const foot = p.plays > 0
         ? `${starsMarkup(p.bestStars)}<span class="tile-best">Best ${p.bestPct}%</span>`
-        : `${starsMarkup(0)}<span class="tile-best">Not tried yet</span>`;
+        : starsMarkup(0);
       const badge = isNewlyAdded(act.added) ? `<span class="badge-new">New</span>` : "";
       return `
         <a class="tile" href="${href(act)}">
@@ -123,7 +138,10 @@
       });
     }
 
-    render();
+    freshScript("data/manifest.js").then(render).catch(() => {
+      document.getElementById("hubSub").textContent =
+        "Couldn't load the activities — check the connection and pull down to refresh.";
+    });
   </script>
 </body>
 </html>
