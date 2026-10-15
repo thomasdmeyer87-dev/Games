@@ -52,9 +52,9 @@ simply never shows the badge — nothing breaks, and the same goes for a date
 you typo.
 
 The badge is about the *tile*, not the child. What the child has done shows
-in the footer underneath: stars and `Best 72%` once they have finished it,
-`Not tried yet` before that. The two used to be the same word, which meant a
-tile said "New" forever if nobody ever played it.
+in the footer underneath: three grey stars before they have finished it,
+then earned stars and `Best 72%`. The two used to be the same word, which
+meant a tile said "New" forever if nobody ever played it.
 
 To change how long the badge lasts, edit `NEW_FOR_DAYS` near the top of the
 script in `index.html`.
@@ -136,6 +136,27 @@ After that, every change goes live the same way:
    holds the old copy longer than the browser does. Pull down to refresh, or
    close the app card and reopen it. When a change looks missing but is
    definitely on `main`, this is almost always why.
+
+### Why a change used to take ten minutes to show up
+
+GitHub Pages serves every file with `cache-control: max-age=600`. There is
+no setting for this — not in Settings → Pages, not in any file you can add
+to the repo. It is GitHub's, and a static site cannot override it.
+
+So a browser that had already visited would reuse the menu it already had
+for ten minutes, and a newly added assignment simply wasn't there.
+
+The way round it is to ask for a web address the cache has never seen.
+`data/manifest.js` and the files in `data/sets/` are now loaded with a
+`?v=<timestamp>` on the end, which changes every page load, so the browser
+always fetches the current copy. They are a couple of kilobytes each, so
+this costs nothing worth measuring.
+
+Code files — `index.html`, the engines, `assets/` — are still cached the
+normal way, because they change rarely. That means a change to the *app
+itself* (not to an assignment) can still take up to ten minutes to reach a
+browser that was recently open. Adding or editing an assignment, which is
+the thing you do often, now shows up at once.
 
 ## Conventions
 

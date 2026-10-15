@@ -7,10 +7,13 @@ window.GameLoader = {
     return new URLSearchParams(location.search).get(name);
   },
 
+  // GitHub Pages caches for ten minutes and a static site cannot change
+  // that. These are tiny content files, and a stale one means yesterday's
+  // words, so always ask for the current copy.
   loadScript(src) {
     return new Promise((resolve, reject) => {
       const s = document.createElement("script");
-      s.src = src;
+      s.src = src + (src.includes("?") ? "&" : "?") + "v=" + Date.now();
       s.onload = resolve;
       s.onerror = () => reject(new Error("Could not load " + src));
       document.head.appendChild(s);
