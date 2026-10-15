@@ -42,7 +42,7 @@ each kid, their subjects, and which activities show up.
 To retire an assignment, add `archived: true` to its line in
 `data/manifest.js`. The tile leaves the home screen, but the content file and
 the kid's scores stay put — delete those two words to bring it back. (Key
-Literacy Terms 3 and 4 are archived this way.) A subject with no activities
+Literacy Terms 3 and 4 and Multiply & Estimate are archived this way.) A subject with no activities
 shows "Coming soon" — that's why **Eli's Math** is a placeholder right now.
 
 ## The NEW badge

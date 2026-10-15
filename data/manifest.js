@@ -50,7 +50,8 @@ window.MANIFEST = {
           name: "Math",
           activities: [
             { set: "evan-math-topic3", title: "Topic 3 Practice Test", engine: "math" , added: "2026-09-21" },
-            { set: "evan-math-multiply", title: "Multiply & Estimate", engine: "math" , added: "2026-09-21" }
+            // Archived 2026-10-15. Scores are kept; delete  archived: true  to bring it back.
+            { set: "evan-math-multiply", title: "Multiply & Estimate", engine: "math" , added: "2026-09-21", archived: true }
           ]
         }
       ]
