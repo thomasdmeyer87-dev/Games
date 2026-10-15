@@ -143,6 +143,13 @@
       background: #f6f7f9; border-left: 3px solid #c8c8c8;
       border-radius: 0 4px 4px 0; padding: 12px 14px; margin-top: 20px;
     }
+    /* Review sheet extras (the shared .rev styles live in styles.css) */
+    /* A select-all answer lists one choice per line. */
+    .rev-line, .why { white-space: pre-line; }
+    .rev-num { display: block; font-size: 12px; font-weight: 800; letter-spacing: 0.05em;
+               text-transform: uppercase; color: var(--text-2); margin-bottom: 2px; }
+    .rev-why { font-size: 14px; font-weight: 500; line-height: 1.5; color: #5a5a5a;
+               margin-top: 8px; padding-left: 29px; }
     .err { text-align: center; padding: 40px 24px; }
     .err .emoji { font-size: 60px; }
     .err .msg { font-size: 16px; color: var(--text-2); margin: 14px 0 20px; }
@@ -516,8 +523,41 @@
     const L = ["A", "B", "C", "D", "E", "F"];
     if (q.type === "multi")
       return q.answers.slice().sort((x, y) => x - y)
-        .map(i => `${L[i]}. ${q.choices[i]}`).join("   ");
+        .map(i => `${L[i]}. ${q.choices[i]}`).join("\n");
     return `${L[q.answer]}. ${q.choices[q.answer]}`;
+  }
+
+  // What he put, written the same way as answerLine so the two lines compare.
+  function givenLine(q, a) {
+    const L = ["A", "B", "C", "D", "E", "F"];
+    if (q.type === "drag")
+      return a && a.some(v => v !== null) ? a.map(v => v === null ? "—" : v).join(" , ") : "Left blank";
+    if (q.type === "multi")
+      return a && a.length
+        ? a.slice().sort((x, y) => x - y).map(i => `${L[i]}. ${q.choices[i]}`).join("\n")
+        : "Left blank";
+    return a === null || a === undefined ? "Left blank" : `${L[a]}. ${q.choices[a]}`;
+  }
+
+  /* Every question, in order: a tick or a cross, the question, and the right
+     answer. A miss also shows what he put and how to work it out. */
+  function reviewSheet() {
+    const rows = questions.map((q, i) => {
+      const right = isRight(q, answers[i]);
+      const text = String(q.prompt).split("\n").join(" ");
+      return `<div class="rev">
+        <div class="rev-top">
+          <div class="rev-mark">${right ? TICK : CROSS}</div>
+          <div class="rev-def"><span class="rev-num">Question ${i + 1}</span>${esc(text)}</div>
+        </div>
+        ${right
+          ? `<div class="rev-line good">Answer: ${esc(answerLine(q))}</div>`
+          : `<div class="rev-line bad">You put: ${esc(givenLine(q, answers[i]))}</div>
+             <div class="rev-line good">Answer: ${esc(answerLine(q))}</div>
+             ${q.explain ? `<div class="rev-why">${esc(q.explain)}</div>` : ""}`}
+      </div>`;
+    }).join("");
+    return `<div class="review-cap">Review — every question</div>${rows}`;
   }
 
   function questionCard(q) {
@@ -573,7 +613,8 @@
         <button class="btn-primary" data-act="again">Try Again</button>
         <div style="margin-top:10px"><a class="btn-text" href="../../index.html">Back to Menu</a></div>
       </div>
-      ${again}`;
+      ${again}
+      ${reviewSheet()}`;
   }
 
   function render() {

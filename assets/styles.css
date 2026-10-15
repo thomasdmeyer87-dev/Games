@@ -217,6 +217,29 @@ body {
 .reward-chip.fire { background: #fff1e6; color: #e8702a; }
 .reward-chip.new  { background: #e9fbef; color: #18a957; }
 
+/* Review sheet — the end of every one of Evan's games: one row per
+   question with a tick or a cross, what he put, and the right answer. */
+.review-cap {
+  font-size: 12.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-2); margin: 26px 6px 10px;
+}
+.rev {
+  background: var(--card); border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);
+  padding: 14px 16px; margin-bottom: 10px;
+}
+.rev-top { display: flex; align-items: flex-start; gap: 10px; }
+.rev-mark { flex: none; line-height: 1.4; }
+.rev-mark svg { width: 19px; height: 19px; display: block; }
+.rev-def { font-size: 15px; font-weight: 500; line-height: 1.45; color: var(--text); }
+.rev-line { font-size: 14.5px; font-weight: 700; margin-top: 8px; padding-left: 29px; }
+.rev-line.bad  { color: #c0271c; }
+.rev-line.good { color: #16833a; }
+.rev-kind {
+  display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-2); background: #eef0f8;
+  border-radius: 999px; padding: 3px 8px; margin-left: 8px; vertical-align: 2px;
+}
+
 /* Short windows — a landscape iPad with tabs showing, or a split view.
    Give the question back the room the browser took. */
 @media (max-height: 780px) {
