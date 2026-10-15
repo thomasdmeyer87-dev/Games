@@ -141,6 +141,14 @@
       overflow: hidden; background: #fff;
     }
     .pad canvas { display: block; width: 100%; height: 250px; touch-action: none; cursor: crosshair; }
+
+    /* Nothing on a test needs selecting or copying. Without this, iPad Safari
+       reads a finger dragging across the scratch pad as "select this text"
+       and starts highlighting words on the page, with the Copy bubble. */
+    body {
+      -webkit-user-select: none; user-select: none;
+      -webkit-touch-callout: none;
+    }
     .pad-cap { position: absolute; left: 10px; top: 7px; font-size: 12.5px; color: #9a9a9a; pointer-events: none; }
     .pad-clear {
       position: absolute; right: 7px; top: 6px; border: 1px solid #c8c8c8; border-radius: 4px;
@@ -551,8 +559,19 @@
 
     let cur = null;
     const at = e => { const r = c.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+    // iPad Safari decides on text selection, the magnifier and double-tap
+    // zoom from the touch events, not the pointer events — so the pad has
+    // to cancel those too, or a stroke can still start a selection.
+    if (!c._touchGuard) {
+      const stop = e => e.preventDefault();
+      ["touchstart", "touchmove", "touchend"].forEach(t => c.addEventListener(t, stop, { passive: false }));
+      c._touchGuard = true;
+    }
+
     c.onpointerdown = e => {
       e.preventDefault(); c.setPointerCapture(e.pointerId);
+      const sel = window.getSelection && window.getSelection();
+      if (sel && sel.rangeCount) sel.removeAllRanges();   // clear anything already highlighted
       cur = [at(e)]; strokes.push(cur); seg(cur[0], { x: cur[0].x + 0.1, y: cur[0].y });
     };
     c.onpointermove = e => {
