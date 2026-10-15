@@ -167,6 +167,14 @@ the thing you do often, now shows up at once.
   is the question card inside `engines/math/`, which copies the plain look of
   the real online test on purpose, so the format is familiar on test day. The
   menu bar and the results screen there still use the shared style.
+- **The button that moves you on lives in an `.action-bar`.** On an iPad with
+  Safari's tab bar showing, a tall question used to push Next off the bottom
+  of the screen. The engine shell fills exactly the visible window and the
+  `.action-bar` row is pinned to its bottom, so the button is always on screen
+  without scrolling. New engines should put their Next / Check / Finish
+  buttons in one: `<div class="action-bar"><button class="btn-primary">…`.
+  Short windows also get tighter spacing (the `max-height` rules at the end
+  of `assets/styles.css` and in each engine) — text size stays put.
 - **Don't nest a `<button>` inside a `<button>`.** The browser silently splits
   them apart and the layout breaks. The math engine's answer choices are
   `<div role="radio">` for exactly this reason — they contain a play button.

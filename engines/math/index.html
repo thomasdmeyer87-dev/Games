@@ -122,6 +122,7 @@
     .qdot.current  { box-shadow: 0 0 0 3px rgba(91,108,255,0.4); }
 
     .test-foot { display: flex; gap: 10px; }
+    .test-foot .btn-sec { align-self: stretch; }
     .btn-sec {
       flex: none; min-width: 104px; border: none; border-radius: 16px;
       background: #e8eaf4; color: var(--text-2); font-family: var(--font);
@@ -150,6 +151,37 @@
       .ab-track { width: 150px; }
       .audio-bar.sm .ab-track { width: 130px; }
       .test-surface { padding: 20px 16px 22px; }
+    }
+
+    /* Short window — a landscape iPad with the tab bar showing, or a split
+       view. Tighten the spacing so more of the question fits without
+       scrolling. The text itself stays the size it is; a 4th grader has to be
+       able to read it. */
+    @media (max-height: 780px) {
+      .test-surface { padding: 18px 20px 20px; margin-bottom: 10px; }
+      .qnav { margin-bottom: 10px; }
+      .qdot { width: 27px; height: 27px; }
+      .audio-bar { margin-bottom: 10px; }
+      .q-text { line-height: 1.45; }
+      .q-figure { margin-top: 10px; }
+      .choices { margin-top: 13px; }
+      .choice { padding: 6px 0; }
+      .choice.stacked { padding: 2px 0 8px; }
+      .bank { gap: 9px; margin: 14px 0 16px; }
+      .chip { padding: 10px 14px; }
+      .blank { height: 44px; }
+      .drag-line { line-height: 2.2; }
+      .btn-sec { padding: 13px; }
+      .why { margin-top: 13px; padding: 10px 12px; }
+      .verdict { margin-bottom: 10px; }
+    }
+    @media (max-height: 620px) {
+      .test-surface { padding: 14px 18px 16px; }
+      .qnav { margin-bottom: 7px; }
+      .bank { margin: 11px 0 12px; }
+      .choices { margin-top: 10px; }
+      .drag-line { line-height: 2; }
+      .btn-sec { padding: 11px; font-size: 16px; }
     }
   </style>
 </head>
@@ -569,7 +601,7 @@
       <div class="progress-track"><div class="progress-fill" style="width:${graded / questions.length * 100}%"></div></div>
       <div class="progress-cap">Question ${index + 1} of ${questions.length}</div>
       ${dots()}${questionCard(q)}
-      <div class="test-foot">
+      <div class="test-foot action-bar">
         <button class="btn-sec" data-act="prev" ${index === 0 ? "disabled" : ""}>‹ Back</button>
         ${mainBtn}
       </div>`;
