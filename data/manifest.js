@@ -32,7 +32,7 @@ window.MANIFEST = {
           activities: [
             { set: "evan-vocab-3", title: "Key Literacy Terms 3", engine: "vocab" },
             { set: "evan-vocab-4", title: "Key Literacy Terms 4", engine: "vocab" },
-            { set: "evan-vocab-graph", title: "Roots: graph = writing", engine: "vocab" }
+            { set: "evan-vocab-graph", title: "16 October Vocab Test List", engine: "vocab" }
           ]
         },
         {
