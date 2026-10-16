@@ -20,10 +20,6 @@
       <h1 id="hubTitle">Homework Practice</h1>
       <p class="sub" id="hubSub"></p>
     </header>
-    <nav class="tabs" aria-label="Sections">
-      <a class="tab on" href="index.html" aria-current="page">Practice</a>
-      <a class="tab" href="history.html">History</a>
-    </nav>
     <div class="kid-grid" id="kidGrid"></div>
   </main>
 
@@ -136,6 +132,7 @@
             </div>
           </div>
           ${subjects}
+          <a class="kid-history" href="history.html?kid=${encodeURIComponent(kid.id)}">🕘 History</a>
         </section>`;
     }
 
