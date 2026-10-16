@@ -28,8 +28,9 @@ window.GameLoader = {
     await this.loadScript(rootRel + "data/manifest.js");
     await this.loadScript(rootRel + "data/sets/" + id + ".js");
 
-    // One content file can back more than one tile — a Quick Check and a Full
-    // Assessment from the same questions — told apart by ?mode=.
+    // One content file can be taken more than one way — a Quick Check and a
+    // Practice Assessment from the same questions — told apart by ?mode=.
+    // Usually one tile lists its  modes  and the engine asks which.
     const mode = (this.param("mode") || "").replace(/[^a-z]/gi, "");
     let meta = null, kidId = null;
     (window.MANIFEST?.kids || []).forEach(kid =>
@@ -47,6 +48,10 @@ window.GameLoader = {
     // Stars and history are kept per tile. "full" keeps the plain set id, so a
     // test that gains a Quick Check keeps the scores it already had.
     const key = mode && mode !== "full" ? id + ":" + mode : id;
-    return { id, mode, key, data, meta, kidId, title: (meta && meta.title) || id };
+    const modes = (meta && meta.modes) || null;
+    const picked = modes && modes.find(m => m.mode === mode);
+    const base = (meta && meta.title) || id;
+    const title = picked ? `${base} · ${picked.title}` : base;
+    return { id, mode, key, data, meta, kidId, title, base, modes };
   }
 };

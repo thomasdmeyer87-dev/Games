@@ -129,6 +129,9 @@
 
     .test-foot { display: flex; gap: 10px; }
     .test-foot .btn-sec { align-self: stretch; }
+    /* The "still blank" note above Submit: one compact line, so the last
+       question still fits a landscape iPad with tabs. */
+    .stage-card .gap-note { font-size: 13px; line-height: 1.3; padding: 5px 12px; margin-top: 5px; border-radius: 10px; }
     .test-foot .btn-primary { margin: 0; }
     .btn-primary.submit { background: linear-gradient(135deg, #ffb15c, #ff8a3d); box-shadow: 0 8px 20px rgba(255,138,61,0.38); }
 
@@ -248,6 +251,28 @@
       .entry-wrap { margin-top: 9px; gap: 8px; }
     }
 
+    /* ---- Which test? (a tile that offers a Quick Check and the full one) ---- */
+    .which-head { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; margin: 14px 4px 4px; }
+    .which-sub { color: var(--text-2); font-size: 15px; font-weight: 600; margin: 0 4px 18px; }
+    .which { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+    .which-card {
+      display: flex; flex-direction: column; gap: 10px; text-decoration: none; color: var(--text);
+      background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow);
+      padding: 22px; -webkit-tap-highlight-color: transparent; transition: transform 0.12s ease;
+    }
+    .which-card:active { transform: scale(0.98); }
+    .which-icon {
+      width: 52px; height: 52px; border-radius: 15px; display: flex; align-items: center; justify-content: center;
+      font-size: 28px; background: var(--tile-math); box-shadow: 0 6px 14px rgba(255,138,61,0.28);
+    }
+    .which-icon.quick { background: linear-gradient(135deg, #7c83ff, #5b6cff); box-shadow: 0 6px 14px rgba(91,108,255,0.28); }
+    .which-title { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
+    .which-about { font-size: 15px; font-weight: 600; color: var(--text-2); line-height: 1.4; }
+    .which-foot { display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 6px; }
+    .which-stars { font-size: 18px; letter-spacing: 1px; color: #d8dbe8; }
+    .which-stars .on { color: var(--gold); }
+    .which-best { font-size: 13px; font-weight: 800; color: var(--text-2); }
+
     /* Review sheet extras (the shared .rev styles live in styles.css) */
     /* A select-all answer lists one choice per line. */
     .why { white-space: pre-line; }
@@ -271,7 +296,7 @@
       .qdot { width: 27px; height: 27px; }
       .audio-bar { margin-bottom: 10px; }
       .q-text { line-height: 1.45; }
-      .q-figure { margin-top: 10px; }
+      .q-figure { margin-top: 10px; line-height: 1.55; }
       .choices { margin-top: 13px; }
       .choice { padding: 6px 0; }
       .choice.stacked { padding: 2px 0 8px; }
@@ -617,7 +642,7 @@
     const who = nums.length === 1 ? `Question ${nums[0]} is`
       : nums.length > 6 ? `${nums.length} questions are`
       : `Questions ${nums.slice(0, -1).join(", ")} and ${nums[nums.length - 1]} are`;
-    return `<div class="gap-note">${who} still blank — ${hint}, or Submit to hand it in anyway.</div>`;
+    return `<div class="gap-note">${who} still blank — ${hint}.</div>`;
   }
 
   function showResults() {
@@ -919,7 +944,9 @@
     const rows = q.entries.map((e, i) => {
       const typed = a[i];
       const state = revealed ? (entryRight(e, typed) ? "key" : "miss") : (i === activeEntry ? "active" : "");
-      const shown = typed ? esc(typed) : (revealed ? "" : `<span class="ph">${q.entries.length > 1 ? "Tap, then type" : "Type your answer"}</span>`);
+      // One answer box gets a hint; A-D boxes are too narrow for one — the
+      // blinking cursor shows which box the keys go to.
+      const shown = typed ? esc(typed) : (revealed || q.entries.length > 1 ? "" : `<span class="ph">Type your answer</span>`);
       const caret = !revealed && i === activeEntry ? `<span class="entry-caret"></span>` : "";
       return `<div class="entry">
         ${e.label ? `<span class="entry-label">${esc(e.label)}</span>` : ""}
@@ -1031,6 +1058,29 @@
     mountPad();
   }
 
+  /* Which test? Shown when the tile offers a Quick Check and the full
+     Practice Assessment and he hasn't picked yet. Each keeps its own stars. */
+  function whichScreen(id, base, modes) {
+    const icons = { quick: "⚡", full: "📝" };
+    const cards = modes.map(m => {
+      const key = m.mode && m.mode !== "full" ? `${id}:${m.mode}` : id;
+      const p = window.Progress ? Progress.getActivity(KID, key) : { plays: 0 };
+      const stars = [1, 2, 3].map(i => `<span class="${p.plays && i <= p.bestStars ? "on" : ""}">★</span>`).join("");
+      return `<a class="which-card" href="?set=${encodeURIComponent(id)}&mode=${encodeURIComponent(m.mode)}">
+        <div class="which-icon ${esc(m.mode)}">${icons[m.mode] || "✏️"}</div>
+        <div class="which-title">${esc(m.title)}</div>
+        <div class="which-about">${esc(m.about || "")}</div>
+        <div class="which-foot"><span class="which-stars">${stars}</span>
+          ${p.plays ? `<span class="which-best">Best ${p.bestPct}%</span>` : ""}</div>
+      </a>`;
+    }).join("");
+    document.title = base;
+    $("app").innerHTML = `${navBar("")}
+      <h1 class="which-head">${esc(base)}</h1>
+      <p class="which-sub">Which one?</p>
+      <div class="which">${cards}</div>`;
+  }
+
   /* Delegated clicks — question text can hold quotes and math symbols,
      so nothing is interpolated into inline handlers. */
   document.addEventListener("click", e => {
@@ -1069,9 +1119,10 @@
 
   window.addEventListener("pagehide", stopSpeech);
 
-  GameLoader.loadSet("../../").then(({ data, title, kidId, id, mode, key }) => {
+  GameLoader.loadSet("../../").then(({ data, title, kidId, id, mode, key, base, modes }) => {
     TITLE = title; document.title = title; KID = kidId; SETID = key || id; MODE = mode || "";
     SOURCE = data;
+    if (modes && !modes.some(m => m.mode === MODE)) return whichScreen(id, base, modes);
     if (!buildQuestions().length) throw new Error("This practice test has no questions yet.");
     start();
   }).catch(err => {
