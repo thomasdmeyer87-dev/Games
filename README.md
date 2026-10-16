@@ -154,7 +154,9 @@ teaches the wrong thing. Indexes start at 0, so `answer: 2` is the *third*
 choice.
 
 Read-aloud uses the voice built into the browser (Chrome or Safari), so
-there are no audio files to record or store. Math symbols are spoken as
+there are no audio files to record or store. Like a real audio player, the
+dot on the bar can be dragged (or the line tapped) to hear part of a
+question again; it picks up from the start of the word under the dot. Math symbols are spoken as
 words — `×` becomes "times", `<` becomes "is less than" — and a question
 can override the whole spoken line with a `say` field if a voice mangles it.
 
