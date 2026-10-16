@@ -199,8 +199,8 @@
       -webkit-tap-highlight-color: transparent; transition: background 0.1s;
     }
     .num:active { background: #e8edf5; }
-    .num.zero { grid-column: span 2; }
-    .num.del { font-size: 15px; color: #4a4a4a; }
+    .num.del { grid-column: span 3; font-size: 15px; color: #4a4a4a; }
+    .num.sym { font-size: 26px; line-height: 1; padding-bottom: 6px; }
 
     /* The stage: test card, scratch paper, and the Back / Next row.
        Upright: card, then (on questions he works out) the scratch paper,
@@ -229,11 +229,12 @@
       .stage-pad .pad { margin: 0; }
       .test-surface { margin-bottom: 0; }
       /* Answer box across the top, keys in two short rows under it —
-         1-6, then 7 8 9 0 ⌫ — so a typed answer costs as little height
+         1-7, then 8 9 0 , . ⌫ — so a typed answer costs as little height
          as possible. Four boxes (A-D) sit side by side. */
       .entry-wrap { flex-direction: column; align-items: stretch; gap: 10px; }
       .entries { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
-      .numpad { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+      .numpad { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+      .num.del { grid-column: span 2; }
     }
     /* Smaller iPads in landscape with tabs (~620-700px of window). */
     @media (orientation: landscape) and (min-width: 900px) and (max-height: 700px) {
@@ -249,11 +250,7 @@
 
     /* Review sheet extras (the shared .rev styles live in styles.css) */
     /* A select-all answer lists one choice per line. */
-    .rev-line, .why { white-space: pre-line; }
-    .rev-num { display: block; font-size: 12px; font-weight: 800; letter-spacing: 0.05em;
-               text-transform: uppercase; color: var(--text-2); margin-bottom: 2px; }
-    .rev-why { font-size: 14px; font-weight: 500; line-height: 1.5; color: #5a5a5a;
-               margin-top: 8px; padding-left: 29px; }
+    .why { white-space: pre-line; }
     .err { text-align: center; padding: 40px 24px; }
     .err .emoji { font-size: 60px; }
     .err .msg { font-size: 16px; color: var(--text-2); margin: 14px 0 20px; }
@@ -304,6 +301,7 @@
 
 <script src="../../assets/loader.js"></script>
 <script src="../../assets/progress.js"></script>
+<script src="../../assets/history.js"></script>
 <script>
   /* ============================================================
      MATH PRACTICE TEST engine.
@@ -328,6 +326,8 @@
 
   let TITLE = "Math Practice Test";
   let SOURCE = null;     // the content file as loaded
+  let MODE = "";         // "quick" = Quick Check, otherwise every question
+  let quickPlan = null;  // this Quick Check's kinds, and what's left after it
   let questions = [];    // this attempt's questions
   let KID = null, SETID = null;
   let answers = [], revealed = false, index = 0, finished = false, reward = null;
@@ -341,7 +341,6 @@
     return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
                     .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
-  const commas = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
   const sameSet = (a, b) =>
     a.length === b.length && [...a].sort().every((v, i) => v === [...b].sort()[i]);
 
@@ -450,10 +449,23 @@
     if (q.type === "work")  return a && a.every(v => v !== "");
     return a !== null;
   }
-  // A typed number is right if it matches the answer, or one of the other
-  // answers the question accepts (an estimate can fairly go more than one way).
+  // How an answer is written: 1352 → "1,352", 3.5 → "3.5".
+  function fmtNum(n) {
+    const [whole, dec] = String(n).split(".");
+    return whole.replace(/\B(?=(\d{3})+(?!\d))/g, ",") + (dec ? "." + dec : "");
+  }
+  // He types the commas himself, and they count: right means written exactly
+  // like the answer (or like another answer the question accepts — an
+  // estimate can fairly go more than one way). 1352 or 13,52 is wrong.
   const entryRight = (e, typed) =>
-    typed !== "" && [e.answer, ...(e.accept || [])].includes(Number(typed));
+    typed !== "" && [e.answer, ...(e.accept || [])].some(a => fmtNum(a) === typed);
+  // Right digits, wrong commas — worth saying, so he sees what to fix.
+  function commaSlip(e, typed) {
+    if (!typed || entryRight(e, typed)) return "";
+    const bare = t => t.replace(/,/g, "");
+    const hit = [e.answer, ...(e.accept || [])].find(a => bare(fmtNum(a)) === bare(typed));
+    return hit === undefined ? "" : `The number is right — check the commas: write it as ${fmtNum(hit)}.`;
+  }
   function isRight(q, a) {
     if (!isAnswered(q, a)) return false;
     if (q.type === "multi") return sameSet(a, q.answers);
@@ -484,7 +496,13 @@
      deals the questions in a new order on every attempt. */
   function buildQuestions() {
     const raw = typeof SOURCE.generate === "function" ? SOURCE.generate() : SOURCE.questions;
-    const qs = (raw || []).filter(validQuestion);
+    let qs = (raw || []).filter(validQuestion);
+    quickPlan = null;
+    if (MODE === "quick") {
+      const kinds = qs.map(kindOf);
+      quickPlan = planQuick(kinds);
+      qs = qs.filter((q, i) => quickPlan.pick.includes(kinds[i]));
+    }
     if (!SOURCE.shuffle) return qs;
     for (let i = qs.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -492,6 +510,41 @@
     }
     return qs;
   }
+
+  /* ---------- Quick Check ---------------------------------------------------
+     Five questions at a time, working through every kind of problem before
+     any kind comes back. The kinds still to come are kept on the device; a
+     check only crosses its five off when it's handed in, so one he quits
+     halfway comes round again. */
+  const QUICK_SIZE = 5;
+  const DECK_KEY = "practice.quickdeck.v1";
+  const kindOf = (q, i) => q.kind || "q" + i;
+  const shuffled = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+  const readDecks = () => { try { return JSON.parse(localStorage.getItem(DECK_KEY)) || {}; } catch { return {}; } };
+
+  function saveDeck(left) {
+    const d = readDecks();
+    d[KID + "|" + SETID] = left;
+    try { localStorage.setItem(DECK_KEY, JSON.stringify(d)); } catch {}
+  }
+
+  function planQuick(all) {
+    const size = Math.min(QUICK_SIZE, all.length);
+    let left = (readDecks()[KID + "|" + SETID] || []).filter(k => all.includes(k));
+    if (left.length < size) {
+      // Start of a round (or the end of one, topped up from the next). The
+      // kinds that finish the old round go to the back of the new one, so they
+      // don't come straight back. Saved now, so a check he quits deals the
+      // same five next time; nothing is crossed off until he hands one in.
+      const tail = left.slice();
+      const round = shuffled(all.filter(k => !tail.includes(k)));
+      const need = size - tail.length;
+      left = tail.concat(round.slice(0, need), round.slice(need), shuffled(tail));
+      saveDeck(left);
+    }
+    return { pick: left.slice(0, size), next: left.slice(size) };
+  }
+  function commitQuick() { if (quickPlan) saveDeck(quickPlan.next); }
 
   function start() {
     questions = buildQuestions();      // a new test on every attempt
@@ -527,12 +580,37 @@
     reward = window.Progress
       ? window.Progress.record(KID, SETID, Math.round(correct / questions.length * 100))
       : { stars: 0, streak: 0, totalStars: 0 };
-    revealed = true; finished = true; render();
+    revealed = true; finished = true;
+    commitQuick();
+    saveHistory(correct);
+    render();
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  // Everything a parent needs later to see what he missed, and how he worked it.
+  function saveHistory(correct) {
+    if (!window.WorkHistory) return;
+    WorkHistory.save({
+      kid: KID, set: SETID, title: TITLE, engine: "math",
+      right: correct, total: questions.length,
+      items: questions.map((q, i) => ({
+        prompt: String(q.prompt).split("\n").join(" "),
+        figure: q.figure || undefined,
+        given: givenLine(q, answers[i]),
+        answer: answerLine(q),
+        right: isRight(q, answers[i]),
+        note: slipsFor(q, answers[i]) || undefined,
+        explain: q.explain || undefined,
+        pad: WorkHistory.encodePad(pads[i]) || undefined
+      }))
+    });
   }
 
   // Back to the results from a question he reopened. Not a second hand-in,
   // so nothing is recorded again.
+  const slipsFor = (q, a) => q.type === "work" && a
+    ? q.entries.map((e, i) => commaSlip(e, a[i])).filter(Boolean).join(" ") : "";
+
   // "Question 7 is still blank" / "Questions 3, 7 and 12 are still blank"
   function blankNote(nums, hint) {
     if (!nums.length) return "";
@@ -554,7 +632,7 @@
     if (revealed || q.type !== "work") return;
     const a = answers[index], cur = a[activeEntry];
     if (d === "del") a[activeEntry] = cur.slice(0, -1);
-    else if (cur.length < 7 && !(cur === "" && d === "0")) a[activeEntry] = cur + d;
+    else if (cur.length < 11) a[activeEntry] = cur + d;      // exactly what he types, commas and all
     render();
   }
 
@@ -759,8 +837,8 @@
 
   function answerLine(q) {
     if (q.type === "work")
-      return q.entries.length === 1 ? commas(q.entries[0].answer)
-        : q.entries.map(e => `${e.label} = ${commas(e.answer)}`).join("\n");
+      return q.entries.length === 1 ? fmtNum(q.entries[0].answer)
+        : q.entries.map(e => `${e.label} = ${fmtNum(e.answer)}`).join("\n");
     if (q.type === "drag")
       return q.answers.map((v, i) => `${i === 0 ? "" : ""}${v}`).join(" , ");
     const L = ["A", "B", "C", "D", "E", "F"];
@@ -775,8 +853,8 @@
     const L = ["A", "B", "C", "D", "E", "F"];
     if (q.type === "work") {
       if (!a || a.every(v => v === "")) return "Left blank";
-      return q.entries.length === 1 ? commas(a[0])
-        : q.entries.map((e, i) => `${e.label} = ${a[i] === "" ? "—" : commas(a[i])}`).join("\n");
+      return q.entries.length === 1 ? a[0]
+        : q.entries.map((e, i) => `${e.label} = ${a[i] === "" ? "—" : a[i]}`).join("\n");
     }
     if (q.type === "drag")
       return a && a.some(v => v !== null) ? a.map(v => v === null ? "—" : v).join(" , ") : "Left blank";
@@ -802,7 +880,9 @@
           ? `<div class="rev-line good">Answer: ${esc(answerLine(q))}</div>`
           : `<div class="rev-line bad">You put: ${esc(givenLine(q, answers[i]))}</div>
              <div class="rev-line good">Answer: ${esc(answerLine(q))}</div>
+             ${slipsFor(q, answers[i]) ? `<div class="rev-line slip">${esc(slipsFor(q, answers[i]))}</div>` : ""}
              ${q.explain ? `<div class="rev-why">${esc(q.explain)}</div>` : ""}`}
+        ${workPicture(WorkHistory.encodePad(pads[i]), "Your scratch paper")}
       </div>`;
     }).join("");
     return `<div class="review-cap">Review — every question</div>${rows}`;
@@ -811,6 +891,13 @@
   const ICON_PENCIL = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M13.6 3.4l3 3L7 16H4v-3z"/><path d="M11.6 5.4l3 3"/></svg>';
   const ICON_ERASER = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M11.4 3.6l5 5-7.6 7.6H5.3l-2.5-2.5z"/><path d="M7.2 7.8l5 5"/><path d="M9 16.2h8"/></svg>';
   const ICON_UNDO   = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 5L4 8.5 7.5 12"/><path d="M4.5 8.5h7a4.5 4.5 0 010 9H9"/></svg>';
+
+  // His scratch paper, cropped to where he wrote — on the review sheet.
+  function workPicture(enc, caption) {
+    const img = window.WorkHistory && WorkHistory.padImage(enc);
+    return img ? `<div class="rev-work"><div class="rev-work-cap">${caption}</div>
+      <img src="${img.src}" width="${img.w}" height="${img.h}" alt="${caption}"></div>` : "";
+  }
 
   function padHtml() {
     const strokes = pads[index] || [];
@@ -832,17 +919,18 @@
     const rows = q.entries.map((e, i) => {
       const typed = a[i];
       const state = revealed ? (entryRight(e, typed) ? "key" : "miss") : (i === activeEntry ? "active" : "");
-      const shown = typed ? commas(typed) : (revealed ? "" : `<span class="ph">${q.entries.length > 1 ? "Tap, then type" : "Type your answer"}</span>`);
+      const shown = typed ? esc(typed) : (revealed ? "" : `<span class="ph">${q.entries.length > 1 ? "Tap, then type" : "Type your answer"}</span>`);
       const caret = !revealed && i === activeEntry ? `<span class="entry-caret"></span>` : "";
       return `<div class="entry">
         ${e.label ? `<span class="entry-label">${esc(e.label)}</span>` : ""}
         <div class="entry-box ${state}" data-act="entry" data-e="${i}">${typed ? shown + caret : caret + shown}</div>
       </div>`;
     }).join("");
+    const key = (d, cls = "", label = d) => `<button class="num ${cls}" data-act="digit" data-d="${d}" aria-label="${label}">${d}</button>`;
     const keys = revealed ? "" : `<div class="numpad">
-      ${["1","2","3","4","5","6","7","8","9"].map(d => `<button class="num" data-act="digit" data-d="${d}">${d}</button>`).join("")}
-      <button class="num zero" data-act="digit" data-d="0">0</button>
-      <button class="num del" data-act="digit" data-d="del" aria-label="Delete">⌫</button>
+      ${["1","2","3","4","5","6","7","8","9"].map(d => key(d)).join("")}
+      ${key("0")}${key(",", "sym", "comma")}${key(".", "sym", "point")}
+      <button class="num del" data-act="digit" data-d="del" aria-label="Delete">⌫ Delete</button>
     </div>`;
     return `<div class="entry-wrap"><div class="entries">${rows}</div>${keys}</div>`;
   }
@@ -859,7 +947,9 @@
 
     let why = "";
     if (done && !right) {
+      const slip = slipsFor(q, answers[index]);
       why = `<div class="why"><strong>Answer:</strong> ${esc(answerLine(q))}` +
+            (slip ? `<br><strong>${esc(slip)}</strong>` : "") +
             (q.explain ? `<br>${esc(q.explain)}` : "") + `</div>`;
     } else if (done && q.explain) {
       why = `<div class="why">${esc(q.explain)}</div>`;
@@ -979,8 +1069,8 @@
 
   window.addEventListener("pagehide", stopSpeech);
 
-  GameLoader.loadSet("../../").then(({ data, title, kidId, id }) => {
-    TITLE = title; document.title = title; KID = kidId; SETID = id;
+  GameLoader.loadSet("../../").then(({ data, title, kidId, id, mode, key }) => {
+    TITLE = title; document.title = title; KID = kidId; SETID = key || id; MODE = mode || "";
     SOURCE = data;
     if (!buildQuestions().length) throw new Error("This practice test has no questions yet.");
     start();

@@ -28,11 +28,15 @@ window.GameLoader = {
     await this.loadScript(rootRel + "data/manifest.js");
     await this.loadScript(rootRel + "data/sets/" + id + ".js");
 
+    // One content file can back more than one tile — a Quick Check and a Full
+    // Assessment from the same questions — told apart by ?mode=.
+    const mode = (this.param("mode") || "").replace(/[^a-z]/gi, "");
     let meta = null, kidId = null;
     (window.MANIFEST?.kids || []).forEach(kid =>
       (kid.subjects || []).forEach(sub =>
         (sub.activities || []).forEach(act => {
-          if (act.set === id) { meta = act; kidId = kid.id; }
+          if (act.set !== id) return;
+          if ((act.mode || "") === mode || !meta) { meta = act; kidId = kid.id; }
         })
       )
     );
@@ -40,6 +44,9 @@ window.GameLoader = {
     const data = (window.SETS || {})[id];
     if (!data) throw new Error("No content found for: " + id);
 
-    return { id, data, meta, kidId, title: (meta && meta.title) || id };
+    // Stars and history are kept per tile. "full" keeps the plain set id, so a
+    // test that gains a Quick Check keeps the scores it already had.
+    const key = mode && mode !== "full" ? id + ":" + mode : id;
+    return { id, mode, key, data, meta, kidId, title: (meta && meta.title) || id };
   }
 };

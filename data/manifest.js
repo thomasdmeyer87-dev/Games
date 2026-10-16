@@ -17,6 +17,11 @@
                    can see what just arrived. Leave it out and the tile
                    simply never shows the badge.
 
+   A math test can have two tiles from the same questions:
+     mode: "quick"  a Quick Check — 5 questions, working through every kind
+                    of problem before any kind comes back
+     mode: "full"   the Full Assessment — every question
+
    To retire an assignment without losing it:
      Add  archived: true  to its entry. The tile disappears from the home
      screen, but the content file and the kid's scores stay exactly where
@@ -49,7 +54,8 @@ window.MANIFEST = {
         {
           name: "Math",
           activities: [
-            { set: "evan-math-topic4", title: "Topic 4 Practice Test", engine: "math" , added: "2026-10-15" },
+            { set: "evan-math-topic4", mode: "quick", title: "Topic 4 Quick Check", engine: "math" , added: "2026-10-16" },
+            { set: "evan-math-topic4", mode: "full", title: "Topic 4 Full Assessment", engine: "math" , added: "2026-10-15" },
             // Archived 2026-10-15. Scores are kept; delete  archived: true  to bring either back.
             { set: "evan-math-topic3", title: "Topic 3 Practice Test", engine: "math" , added: "2026-09-21", archived: true },
             { set: "evan-math-multiply", title: "Multiply & Estimate", engine: "math" , added: "2026-09-21", archived: true }

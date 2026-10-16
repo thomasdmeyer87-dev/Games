@@ -20,6 +20,10 @@
       <h1 id="hubTitle">Homework Practice</h1>
       <p class="sub" id="hubSub"></p>
     </header>
+    <nav class="tabs" aria-label="Sections">
+      <a class="tab on" href="index.html" aria-current="page">Practice</a>
+      <a class="tab" href="history.html">History</a>
+    </nav>
     <div class="kid-grid" id="kidGrid"></div>
   </main>
 
@@ -48,8 +52,11 @@
     };
 
     function href(act) {
-      return `engines/${encodeURIComponent(act.engine)}/index.html?set=${encodeURIComponent(act.set)}`;
+      return `engines/${encodeURIComponent(act.engine)}/index.html?set=${encodeURIComponent(act.set)}` +
+             (act.mode ? `&mode=${encodeURIComponent(act.mode)}` : "");
     }
+    // Same rule as GameLoader: a mode other than "full" keeps its own stars.
+    const progressKey = act => act.mode && act.mode !== "full" ? `${act.set}:${act.mode}` : act.set;
 
     // A tile wears a NEW badge for this many days after the date in the
     // manifest. Freshness and progress are different things: "just added"
@@ -71,7 +78,7 @@
 
     function tile(kidId, act) {
       const e = ENGINE[act.engine] || { icon: "✏️", bg: "var(--tile-vocab)" };
-      const p = window.Progress.getActivity(kidId, act.set);
+      const p = window.Progress.getActivity(kidId, progressKey(act));
       const foot = p.plays > 0
         ? `${starsMarkup(p.bestStars)}<span class="tile-best">Best ${p.bestPct}%</span>`
         : starsMarkup(0);
