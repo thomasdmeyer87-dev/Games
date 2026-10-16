@@ -277,9 +277,9 @@
         shown.map(([nm, a, b]) => nm.padEnd(16) + String(a).padStart(6) + String(b).padStart(10)).join("\n");
       return {
         type: "work",
-        prompt: `The table shows how many trips three delivery companies made in a month, and how many packages they carried on each trip.\nHow many packages does ${names[0]} deliver in a month?`,
+        prompt: `The table shows the trips and packages per trip for three delivery companies in one month.\nHow many packages does ${names[0]} deliver in a month?`,
         figure,
-        say: `The table shows how many trips three delivery companies made in a month, and how many packages they carried on each trip. ` +
+        say: `The table shows the trips and packages per trip for three delivery companies in one month. ` +
              shown.map(([nm, a, b]) => `${nm}: ${a} trips, ${b} packages per trip.`).join(" ") +
              ` How many packages does ${names[0]} deliver in a month?`,
         answer: t * p,

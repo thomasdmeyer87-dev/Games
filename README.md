@@ -84,13 +84,21 @@ this. `data/sets/evan-math-topic4.js` is the model to copy.
    items are `type: "work"`: scratch paper plus an answer he types on on-screen
    number keys — never a text field, so the iPad keyboard (and talk-to-text)
    never appears. A multiple-choice item he worked out gets `pad: true`.
+   The keys include the comma and the decimal point, and **commas are graded**:
+   1,352 is right, 1352 and 13,52 are wrong. A right number with wrong commas
+   gets a note on the review saying so.
 5. **It has to look like his real test.** The question card copies the plain
    online-test look; don't restyle it.
 6. **Built for how he uses it: a standard iPad, landscape, in a browser with
    tabs** — a window about 1080-1180 wide and 730-740 tall. In landscape the
    scratch paper fills the left side on every question and the test sits on
    the right. Check that every question fits that window without scrolling.
-7. **Check every answer key by machine.** Run `generate()` a few thousand
+7. **Two tiles per test: Quick Check and Full Assessment.** Both point at
+   the same content file; `mode: "quick"` deals 5 questions, working through
+   every kind of problem before any kind comes back (a check only crosses its
+   kinds off when it's handed in), and `mode: "full"` is every question.
+   Stars and History are kept separately for each.
+8. **Check every answer key by machine.** Run `generate()` a few thousand
    times and re-work each answer from the numbers in the question; a wrong
    key teaches the wrong thing.
 
@@ -145,16 +153,33 @@ can override the whole spoken line with a `say` field if a voice mangles it.
 ## File map
 
 ```
-index.html            Home screen (built from the manifest)
+index.html            Home screen (built from the manifest) — the Practice tab
+history.html          The History tab: every finished test, to review
 assets/styles.css     Shared look for the home screen
 assets/loader.js      Shared helper the engines use to load content
+assets/progress.js    Stars, streaks and best scores (saved on the device)
+assets/history.js     Saves each finished test, answers and scratch paper
+assets/icons/         The Home Screen app icon
 data/manifest.js      The table of contents — edit this to change the menu
 data/sets/            One file per assignment (the content)
 engines/vocab/        Definition → word game
 engines/speak/        Say-the-word game
-engines/math/         Practice test with read-aloud
+engines/math/         Practice test: read-aloud, scratch paper, Quick Check
 manifest.json         iPad "add to home screen" app settings
 ```
+
+## History
+
+The **History** tab on the front page lists every test handed in on this
+device, newest first, for each kid. Tap one to review it question by
+question: what he put, the right answer, the worked explanation, and a
+picture of his scratch paper. It opens on **Missed** — just the ones he got
+wrong — with **All** a tap away. A test can be deleted from there.
+
+History lives on the iPad, in the same place as the stars (see the note
+below about the Home Screen app keeping its own). It keeps the most recent
+60 tests, and drawings are saved as pen strokes rather than pictures, so a
+test takes only a few KB. The code is `assets/history.js`.
 
 ## Use it as an app (full screen)
 
