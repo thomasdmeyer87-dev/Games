@@ -43,7 +43,11 @@
     .audio-bar.sm { padding: 8px 12px; gap: 9px; margin-bottom: 8px; }
     .ab-icon { width: 24px; height: 24px; flex: none; display: block; }
     .audio-bar.sm .ab-icon { width: 21px; height: 21px; }
+    /* A tall, easy-to-grab strip around the thin line. */
+    .ab-seek { display: flex; align-items: center; height: 32px; margin: -14px 0; padding: 0 7px;
+               cursor: pointer; touch-action: none; flex: none; }
     .ab-track { position: relative; width: 210px; height: 4px; background: #666; border-radius: 2px; flex: none; }
+    .ab-seek.dragging .ab-knob { width: 18px; height: 18px; margin-left: -9px; transition: none; }
     .audio-bar.sm .ab-track { width: 185px; }
     .ab-knob {
       position: absolute; top: 50%; left: 0; width: 13px; height: 13px;
@@ -424,26 +428,72 @@
 
   function play(key) {
     if (!synth) return;
-    const wasPlaying = playingKey === key;
-    stopSpeech();
-    if (wasPlaying) return;                 // tapping the live bar stops it
+    if (playingKey === key) { stopSpeech(); return; }   // tapping the live bar stops it
+    speakFrom(key, 0);
+  }
 
+  // Each reading gets a number. Cutting one off to start another fires the old
+  // one's end event late — without this check it would stop the new reading.
+  let speechId = 0;
+
+  // Read from a point along the bar (0 = start, 1 = end), starting at the
+  // beginning of the word under that point.
+  function speakFrom(key, frac) {
+    stopSpeech();
     const text = textFor(questions[index], key);
+    let start = Math.min(text.length - 1, Math.max(0, Math.floor(frac * text.length)));
+    while (start > 0 && !/\s/.test(text[start - 1])) start--;
     const bar = document.querySelector(`.audio-bar[data-key="${key}"]`);
-    const u = new SpeechSynthesisUtterance(text);
+    const knob = bar && bar.querySelector(".ab-knob");
+    const at = i => { if (knob) knob.style.left = Math.min(100, i / Math.max(1, text.length) * 100) + "%"; };
+
+    const id = ++speechId;
+    const u = new SpeechSynthesisUtterance(text.slice(start));
     u.rate = 0.88;                          // a little slow — it's math, and he's nine
     u.lang = "en-US";
-    u.onboundary = e => {
-      if (!bar || playingKey !== key) return;
-      const pct = Math.min(100, (e.charIndex / Math.max(1, text.length)) * 100);
-      bar.querySelector(".ab-knob").style.left = pct + "%";
-    };
-    u.onend = stopSpeech;
-    u.onerror = stopSpeech;
+    u.onboundary = e => { if (id === speechId && playingKey === key) at(start + e.charIndex); };
+    u.onend = u.onerror = () => { if (id === speechId) stopSpeech(); };
     playingKey = key;
     if (bar) bar.querySelector(".ab-play").innerHTML = ICON_STOP;
-    synth.speak(u);
+    at(start);
+    // Safari can drop a reading started in the same instant another was cut off.
+    setTimeout(() => { if (id === speechId) synth.speak(u); }, 60);
   }
+
+  /* Drag the dot (or tap the line) to hear a part again. Pressing pauses the
+     voice; letting go reads on from there. */
+  let seeking = null, ignorePlayClickUntil = 0;
+  const seekFrac = (track, x) => {
+    const r = track.getBoundingClientRect();
+    return Math.min(1, Math.max(0, (x - r.left) / Math.max(1, r.width)));
+  };
+  document.addEventListener("pointerdown", e => {
+    const seek = e.target.closest(".ab-seek");
+    if (!seek || !synth) return;
+    e.preventDefault(); e.stopPropagation();
+    seek.setPointerCapture(e.pointerId);
+    speechId++; synth.cancel();             // silence while choosing the spot
+    const track = seek.querySelector(".ab-track");
+    seeking = { key: seek.dataset.seek, seek, track, frac: seekFrac(track, e.clientX) };
+    seek.classList.add("dragging");
+    seek.querySelector(".ab-knob").style.left = seeking.frac * 100 + "%";
+  }, true);
+  document.addEventListener("pointermove", e => {
+    if (!seeking) return;
+    e.preventDefault();
+    seeking.frac = seekFrac(seeking.track, e.clientX);
+    seeking.seek.querySelector(".ab-knob").style.left = seeking.frac * 100 + "%";
+  }, true);
+  const endSeek = cancelled => () => {
+    if (!seeking) return;
+    const { key, seek, frac } = seeking;
+    seeking = null;
+    seek.classList.remove("dragging");
+    ignorePlayClickUntil = Date.now() + 500;   // the bar's own tap-to-stop mustn't fire too
+    cancelled ? stopSpeech() : speakFrom(key, frac);
+  };
+  document.addEventListener("pointerup", endSeek(false), true);
+  document.addEventListener("pointercancel", endSeek(true), true);
 
   /* ---------- Icons (inline so they match the test's look offline) -------- */
 
@@ -457,7 +507,7 @@
     if (!synth) return "";
     return `<button class="audio-bar ${small ? "sm" : ""}" data-act="play" data-key="${key}" aria-label="Listen">
       <svg class="ab-icon ab-play" viewBox="0 0 24 24">${ICON_PLAY}</svg>
-      <span class="ab-track"><span class="ab-knob"></span></span>
+      <span class="ab-seek" data-seek="${key}" aria-label="Drag to choose where to listen from"><span class="ab-track"><span class="ab-knob"></span></span></span>
       <svg class="ab-icon" viewBox="0 0 24 24">${ICON_SPK}</svg>
     </button>`;
   }
@@ -1101,7 +1151,7 @@
     const el = e.target.closest("[data-act]");
     if (!el || el.disabled || el.hasAttribute("disabled")) return;
     switch (el.dataset.act) {
-      case "play":   e.stopPropagation(); play(el.dataset.key); break;
+      case "play":   e.stopPropagation(); if (Date.now() > ignorePlayClickUntil) play(el.dataset.key); break;
       case "pick":   pick(Number(el.dataset.i)); break;
       case "goto":   if (finished) finished = false; goTo(Number(el.dataset.i)); break;
       case "prev":   goTo(index - 1); break;
