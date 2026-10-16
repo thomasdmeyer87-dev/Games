@@ -99,6 +99,13 @@
       font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
       font-size: 18px; white-space: pre; line-height: 1.35; margin-bottom: 6px;
     }
+    .drag-table { border-collapse: collapse; margin-top: 2px; font-size: 18px; color: #1a1a1a; }
+    .drag-table th {
+      font-size: 15px; font-weight: 700; line-height: 1.25; padding: 7px 18px;
+      background: #f3f5f9; border: 1px solid #c8c8c8; text-align: center;
+    }
+    .drag-table td { border: 1px solid #c8c8c8; padding: 4px 14px; text-align: center; min-width: 150px; }
+    .drag-table .blank { margin: 0; height: 42px; min-width: 112px; }
     .drag-rule { width: 158px; height: 2px; background: #9a9a9a; margin: 8px 0 10px 34px; }
     .blank {
       display: inline-flex; align-items: center; justify-content: center;
@@ -111,7 +118,6 @@
     .blank.hot   { border-color: #3b82f6; background: #eff6ff; border-width: 2px; }
     .blank.key   { color: #157f3d; font-weight: 600; border-color: #9ad0ae; }
     .blank.miss  { color: #c0271c; border-color: #e6a9a3; }
-    .drag-hint { font-size: 14px; color: #8a8a8a; margin-top: 4px; }
 
     /* ---- Question navigator + footer (app style) ---- */
     .qnav { display: flex; flex-wrap: wrap; gap: 7px; margin: 2px 2px 16px; }
@@ -189,10 +195,9 @@
       font-size: 22px; color: #1a1a1a; font-variant-numeric: tabular-nums;
       -webkit-tap-highlight-color: transparent;
     }
-    .entry-box.active { border: 2px solid #3b82f6; background: #eff6ff; padding: 0 13px; }
+    .entry-box.active { border: 2px solid #3b82f6; padding: 0 13px; }   /* a focused text field */
     .entry-box.key  { color: #157f3d; font-weight: 600; border-color: #9ad0ae; }
     .entry-box.miss { color: #c0271c; border-color: #e6a9a3; }
-    .entry-box .ph { font-size: 15px; color: #a9a9a9; }
     .entry-caret { display: inline-block; width: 2px; height: 24px; background: #3b82f6; margin-left: 1px; animation: blink 1s steps(1) infinite; }
     @keyframes blink { 50% { opacity: 0; } }
     .numpad { display: grid; grid-template-columns: repeat(3, 64px); gap: 8px; }
@@ -267,7 +272,6 @@
     }
     .which-icon.quick { background: linear-gradient(135deg, #7c83ff, #5b6cff); box-shadow: 0 6px 14px rgba(91,108,255,0.28); }
     .which-title { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; }
-    .which-about { font-size: 15px; font-weight: 600; color: var(--text-2); line-height: 1.4; }
     .which-foot { display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 6px; }
     .which-stars { font-size: 18px; letter-spacing: 1px; color: #d8dbe8; }
     .which-stars .on { color: var(--gold); }
@@ -297,6 +301,9 @@
       .audio-bar { margin-bottom: 10px; }
       .q-text { line-height: 1.45; }
       .q-figure { margin-top: 10px; line-height: 1.55; }
+      .drag-table th { padding: 5px 16px; font-size: 14.5px; }
+      .drag-table td { padding: 2px 12px; }
+      .drag-table .blank { height: 36px; }
       .choices { margin-top: 13px; }
       .choice { padding: 6px 0; }
       .choice.stacked { padding: 2px 0 8px; }
@@ -402,6 +409,7 @@
     const parts = [speakable(q.prompt)];
     if (q.figure) parts.push(speakable(q.figure));
     if (q.template) parts.push(q.template.map(speakable).join(". "));
+    if (q.table) parts.push(q.table.rows.map(r => r.map(speakable).join(", ")).join(". "));
     return parts.join(". ");
   }
 
@@ -509,7 +517,8 @@
              q.entries.every(e => e && Number.isFinite(e.answer));
     }
     if (q.type === "drag")
-      return Array.isArray(q.bank) && Array.isArray(q.template) && Array.isArray(q.answers);
+      return Array.isArray(q.bank) && Array.isArray(q.answers) &&
+             (Array.isArray(q.template) || (q.table && Array.isArray(q.table.rows)));
     if (!Array.isArray(q.choices) || q.choices.length < 2) return false;
     return q.type === "multi"
       ? Array.isArray(q.answers) && q.answers.length > 0
@@ -842,22 +851,28 @@
       `<div class="chip ${armed === v ? "armed" : ""}" data-value="${esc(v)}">${esc(v)}</div>`
     ).join("")}</div>`;
 
-    const lines = q.template.map(line => {
-      if (line.trim() === "---") return `<div class="drag-rule"></div>`;
-      const html = line.split(/(\{\d+\})/).map(part => {
-        const m = part.match(/^\{(\d+)\}$/);
-        if (!m) return esc(part);
-        const slot = Number(m[1]);
-        const val = a[slot];
-        const state = done ? (val === q.answers[slot] ? "key" : "miss") : "";
-        return `<span class="blank ${state}" data-act="blank" data-slot="${slot}">${val === null ? "" : esc(val)}</span>`;
-      }).join("");
-      return `<div class="drag-line ${q.mono ? "mono" : ""}">${html}</div>`;
+    // Text with {0} {1} … where the blanks go.
+    const fill = text => String(text).split(/(\{\d+\})/).map(part => {
+      const m = part.match(/^\{(\d+)\}$/);
+      if (!m) return esc(part);
+      const slot = Number(m[1]);
+      const val = a[slot];
+      const state = done ? (val === q.answers[slot] ? "key" : "miss") : "";
+      return `<span class="blank ${state}" data-act="blank" data-slot="${slot}">${val === null ? "" : esc(val)}</span>`;
     }).join("");
 
-    const hint = done ? "" :
-      `<div class="drag-hint">Drag a number into a box — or tap the number, then tap the box.</div>`;
-    return bank + lines + hint;
+    // A table on the paper is a table here too: headings, and blanks in the cells.
+    const lines = q.table
+      ? `<table class="drag-table">
+          <tr>${q.table.head.map(h => `<th>${esc(h)}</th>`).join("")}</tr>
+          ${q.table.rows.map(r => `<tr>${r.map(c => `<td>${fill(c)}</td>`).join("")}</tr>`).join("")}
+        </table>`
+      : q.template.map(line => line.trim() === "---" ? `<div class="drag-rule"></div>`
+          : `<div class="drag-line ${q.mono ? "mono" : ""}">${fill(line)}</div>`).join("");
+
+    // No instructions the real test doesn't show. (Tapping a number and then a
+    // box still works, quietly, for when a drag is fiddly on the iPad.)
+    return bank + lines;
   }
 
   function answerLine(q) {
@@ -944,9 +959,9 @@
     const rows = q.entries.map((e, i) => {
       const typed = a[i];
       const state = revealed ? (entryRight(e, typed) ? "key" : "miss") : (i === activeEntry ? "active" : "");
-      // One answer box gets a hint; A-D boxes are too narrow for one — the
-      // blinking cursor shows which box the keys go to.
-      const shown = typed ? esc(typed) : (revealed || q.entries.length > 1 ? "" : `<span class="ph">Type your answer</span>`);
+      // Like the real test: an empty box, no hint. The first box starts
+      // selected, with a blinking cursor; tapping another box moves to it.
+      const shown = typed ? esc(typed) : "";
       const caret = !revealed && i === activeEntry ? `<span class="entry-caret"></span>` : "";
       return `<div class="entry">
         ${e.label ? `<span class="entry-label">${esc(e.label)}</span>` : ""}
@@ -1069,7 +1084,6 @@
       return `<a class="which-card" href="?set=${encodeURIComponent(id)}&mode=${encodeURIComponent(m.mode)}">
         <div class="which-icon ${esc(m.mode)}">${icons[m.mode] || "✏️"}</div>
         <div class="which-title">${esc(m.title)}</div>
-        <div class="which-about">${esc(m.about || "")}</div>
         <div class="which-foot"><span class="which-stars">${stars}</span>
           ${p.plays ? `<span class="which-best">Best ${p.bestPct}%</span>` : ""}</div>
       </a>`;

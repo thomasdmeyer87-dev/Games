@@ -87,8 +87,11 @@ this. `data/sets/evan-math-topic4.js` is the model to copy.
    The keys include the comma and the decimal point, and **commas are graded**:
    1,352 is right, 1352 and 13,52 are wrong. A right number with wrong commas
    gets a note on the review saying so.
-5. **It has to look like his real test.** The question card copies the plain
-   online-test look; don't restyle it.
+5. **It has to look like his real test, in every way.** The question card
+   copies the plain online-test look; don't restyle it. No instructions,
+   hints or placeholder text the real test doesn't show (no "type your
+   answer", no "drag a number here"), and lay things out the way the paper
+   does — a table on the paper is a table on screen.
 6. **Built for how he uses it: a standard iPad, landscape, in a browser with
    tabs** — a window about 1080-1180 wide and 730-740 tall. In landscape the
    scratch paper fills the left side on every question and the test sits on
@@ -138,6 +141,9 @@ Useful extras:
   other numbers that also count — `{ answer: 80000, accept: [72000] }` for an
   estimate that can fairly be rounded two ways.
 - `generate` and `shuffle` on the set itself: see the rules above.
+- `table` on a `"drag"` question, in place of `template`, lays the blanks out
+  as a table: `{ head: ["Number of Bags", "Number of Marbles"], rows:
+  [["10", "{0}"], ["{1}", "800"]] }`.
 - `\n` inside `prompt` starts a new line.
 - In a `"drag"` question, `template` is the lines of text and `{0} {1} {2}`
   mark where the blanks go; `answers` lists what belongs in each one. The

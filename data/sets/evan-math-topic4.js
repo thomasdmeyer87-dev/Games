@@ -206,7 +206,10 @@
     // 8. Complete the table from the number box.
     beadTable() {
       const n = R(12, 19);
-      const [plural, single, items] = pick([["necklaces", "necklace", "beads"], ["bags", "bag", "marbles"], ["boxes", "box", "pencils"]]);
+      const [plural, single, items, Plural, Items] = pick([
+        ["necklaces", "necklace", "beads", "Necklaces", "Beads"],
+        ["bags", "bag", "marbles", "Bags", "Marbles"],
+        ["boxes", "box", "pencils", "Boxes", "Pencils"]]);
       const counts = shuffle([10, 20, 30, 40, 50, 60, 70, 80, 90]).slice(0, 4).sort((x, y) => x - y);
       const [c1, c2, c3, c4] = counts;
       const answers = [fmt(n * c1), fmt(n * c2), fmt(c3), fmt(c4), fmt(n * c4)];
@@ -215,8 +218,11 @@
         type: "drag",
         prompt: `${pick(NAMES)} fills ${plural}. Each ${single} has ${n} ${items}. Use the numbers in the box to complete the table.`,
         bank,
-        template: [`${c1} ${plural} → {0} ${items}`, `${c2} ${plural} → {1} ${items}`,
-                   `{2} ${plural} → ${fmt(n * c3)} ${items}`, `{3} ${plural} → {4} ${items}`],
+        // A two-column table, like the paper's "Number of Necklaces | Number of Beads".
+        table: {
+          head: [`Number of ${Plural}`, `Number of ${Items}`],
+          rows: [[`${c1}`, "{0}"], [`${c2}`, "{1}"], ["{2}", fmt(n * c3)], ["{3}", "{4}"]]
+        },
         answers,
         say: `Each ${single} has ${n} ${items}. Use the numbers in the box to complete the table. ` +
              `${c1} ${plural} have how many ${items}? ${c2} ${plural} have how many ${items}? ` +
