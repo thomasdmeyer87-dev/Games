@@ -93,11 +93,13 @@ this. `data/sets/evan-math-topic4.js` is the model to copy.
    tabs** — a window about 1080-1180 wide and 730-740 tall. In landscape the
    scratch paper fills the left side on every question and the test sits on
    the right. Check that every question fits that window without scrolling.
-7. **Two tiles per test: Quick Check and Full Assessment.** Both point at
-   the same content file; `mode: "quick"` deals 5 questions, working through
-   every kind of problem before any kind comes back (a check only crosses its
-   kinds off when it's handed in), and `mode: "full"` is every question.
-   Stars and History are kept separately for each.
+7. **One tile per topic, with a choice inside: Quick Check or Practice
+   Assessment.** The home screen shows just "Topic 4"; tapping it asks which.
+   The manifest entry lists the two as `modes`: `"quick"` deals 5 questions,
+   working through every kind of problem before any kind comes back (a check
+   only crosses its kinds off when it's handed in), and `"full"` is every
+   question. Each keeps its own stars and History; the tile shows the
+   Practice Assessment's best.
 8. **Check every answer key by machine.** Run `generate()` a few thousand
    times and re-work each answer from the numbers in the question; a wrong
    key teaches the wrong thing.
@@ -153,8 +155,8 @@ can override the whole spoken line with a `say` field if a voice mangles it.
 ## File map
 
 ```
-index.html            Home screen (built from the manifest) — the Practice tab
-history.html          The History tab: every finished test, to review
+index.html            Home screen (built from the manifest)
+history.html          A child's History: every finished test, to review
 assets/styles.css     Shared look for the home screen
 assets/loader.js      Shared helper the engines use to load content
 assets/progress.js    Stars, streaks and best scores (saved on the device)
@@ -170,8 +172,9 @@ manifest.json         iPad "add to home screen" app settings
 
 ## History
 
-The **History** tab on the front page lists every test handed in on this
-device, newest first, for each kid. Tap one to review it question by
+Each child's section on the front page ends with a **History** button. It
+lists every test that child handed in on this device, newest first. Tap one
+to review it question by
 question: what he put, the right answer, the worked explanation, and a
 picture of his scratch paper. It opens on **Missed** — just the ones he got
 wrong — with **All** a tap away. A test can be deleted from there.

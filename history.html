@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="Practice" />
   <meta name="theme-color" content="#f7f8fc" />
   <style>
-    .hist-kid { margin-top: 24px; }
+    .hist-kid { margin-top: 18px; }
     .hist-kid-name { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
                      color: var(--text-2); margin: 0 6px 10px; }
     .hist-row {
@@ -53,14 +53,11 @@
 </head>
 <body>
   <main class="app-shell">
+    <div class="nav-bar"><a class="nav-back" href="index.html">‹ Menu</a></div>
     <header class="home-head">
-      <h1>Homework Practice</h1>
-      <p class="sub">Every finished test, with his answers and his scratch paper.</p>
+      <h1 id="histTitle">History</h1>
+      <p class="sub">Every finished test, with the answers and the scratch paper.</p>
     </header>
-    <nav class="tabs" aria-label="Sections">
-      <a class="tab" href="index.html">Practice</a>
-      <a class="tab on" href="history.html" aria-current="page">History</a>
-    </nav>
     <div id="view"></div>
   </main>
 
@@ -78,6 +75,8 @@
     const $ = id => document.getElementById(id);
     const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     let kidNames = {}, showMissed = true;
+    // Opened from a child's History button: history.html?kid=evan
+    const KID = (new URLSearchParams(location.search).get("kid") || "").replace(/[^a-z0-9-]/gi, "");
 
     const when = iso => new Date(iso).toLocaleString("en-US",
       { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -85,13 +84,14 @@
     const band = p => p >= 90 ? "hi" : p >= 70 ? "mid" : "lo";
 
     function listView() {
-      const all = WorkHistory.list().slice().reverse();          // newest first
+      const all = WorkHistory.list().slice().reverse()           // newest first
+        .filter(e => !KID || e.kid === KID);
       if (!all.length) return `<div class="hist-empty">Nothing here yet.<br>Finished tests show up here.</div>`;
       const byKid = {};
       all.forEach(e => (byKid[e.kid || "?"] = byKid[e.kid || "?"] || []).push(e));
       return Object.entries(byKid).map(([kid, list]) => `
         <section class="hist-kid">
-          <div class="hist-kid-name">${esc(kidNames[kid] || kid)}</div>
+          ${KID ? "" : `<div class="hist-kid-name">${esc(kidNames[kid] || kid)}</div>`}
           ${list.map(e => {
             const p = pctOf(e), missed = e.total - e.right;
             return `<a class="hist-row" href="#e=${encodeURIComponent(e.id)}">
@@ -151,6 +151,8 @@
     function render() {
       const m = location.hash.match(/^#e=(.+)$/);
       const e = m && WorkHistory.get(decodeURIComponent(m[1]));
+      $("histTitle").textContent = KID && kidNames[KID] ? `${kidNames[KID]}'s History` : "History";
+      $("histTitle").parentElement.style.display = e ? "none" : "";
       $("view").innerHTML = e ? detailView(e) : listView();
       window.scrollTo(0, 0);
     }

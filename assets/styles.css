@@ -41,17 +41,15 @@ body {
 
 /* ---------------- Home screen ---------------- */
 
-/* Practice | History — the two sections of the home screen. */
-.tabs {
-  display: flex; gap: 4px; padding: 4px; margin: 14px 2px 4px;
-  background: #e6e8f3; border-radius: 13px; max-width: 320px;
+/* History — a button at the foot of each child's section. */
+.kid-history {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-top: 16px; padding: 13px; border-radius: var(--radius-sm);
+  background: var(--card); box-shadow: var(--shadow-sm);
+  color: var(--kc2, var(--accent)); font-size: 16px; font-weight: 800; text-decoration: none;
+  -webkit-tap-highlight-color: transparent; transition: transform 0.12s ease;
 }
-.tab {
-  flex: 1; text-align: center; padding: 9px 10px; border-radius: 10px;
-  font-size: 15px; font-weight: 800; color: var(--text-2); text-decoration: none;
-  -webkit-tap-highlight-color: transparent;
-}
-.tab.on { background: var(--card); color: var(--text); box-shadow: var(--shadow-sm); }
+.kid-history:active { transform: scale(0.98); }
 
 
 .app-shell { width: 100%; max-width: 560px; margin: 0 auto; padding: 14px 18px 56px; }

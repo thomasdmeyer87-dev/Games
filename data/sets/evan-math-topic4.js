@@ -277,11 +277,11 @@
         shown.map(([nm, a, b]) => nm.padEnd(16) + String(a).padStart(6) + String(b).padStart(10)).join("\n");
       return {
         type: "work",
-        prompt: `The table shows the trips and packages per trip for three delivery companies in one month.\nHow many packages does ${names[0]} deliver in a month?`,
+        prompt: `The table shows the trips and packages per trip for three delivery companies in one month.\nHow many packages does ${names[0]} deliver?`,
         figure,
         say: `The table shows the trips and packages per trip for three delivery companies in one month. ` +
              shown.map(([nm, a, b]) => `${nm}: ${a} trips, ${b} packages per trip.`).join(" ") +
-             ` How many packages does ${names[0]} deliver in a month?`,
+             ` How many packages does ${names[0]} deliver in the month?`,
         answer: t * p,
         explain: `${names[0]} makes ${t} trips with ${p} packages each time: ${t} × ${p}. Mental math: ${t / 10} × ${p / 10} = ${(t / 10) * (p / 10)}, then add the two zeros: ${fmt(t * p)}.`
       };
