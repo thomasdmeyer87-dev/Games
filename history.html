@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>History</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <!-- Added to the Home Screen, it opens full screen like an app: no tabs, no address bar. -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/icons/icon-180.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Practice" />
+  <meta name="theme-color" content="#f7f8fc" />
+  <style>
+    .hist-kid { margin-top: 24px; }
+    .hist-kid-name { font-size: 13px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+                     color: var(--text-2); margin: 0 6px 10px; }
+    .hist-row {
+      display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+      background: var(--card); border: none; border-radius: var(--radius-sm); box-shadow: var(--shadow-sm);
+      padding: 14px 16px; margin-bottom: 10px; font-family: inherit; color: var(--text);
+      cursor: pointer; -webkit-tap-highlight-color: transparent; text-decoration: none;
+    }
+    .hist-row:active { transform: scale(0.99); }
+    .hist-main { flex: 1; min-width: 0; }
+    .hist-title { font-size: 16px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hist-when { font-size: 13px; font-weight: 600; color: var(--text-2); margin-top: 2px; }
+    .hist-score { flex: none; text-align: right; }
+    .hist-pct { display: inline-block; font-size: 14px; font-weight: 800; border-radius: 999px; padding: 5px 11px; }
+    .hist-pct.hi  { background: #e9fbef; color: #16833a; }
+    .hist-pct.mid { background: #fff6e0; color: #a5660f; }
+    .hist-pct.lo  { background: #fdecea; color: #c0271c; }
+    .hist-missed { font-size: 12px; font-weight: 700; color: var(--text-2); margin-top: 4px; }
+    .hist-chev { flex: none; color: #b9bdcc; font-size: 22px; font-weight: 700; }
+
+    .hist-head { padding: 6px 4px 4px; }
+    .hist-back { color: var(--accent); text-decoration: none; font-size: 17px; font-weight: 800; background: none; border: none;
+                 font-family: inherit; padding: 8px 0; cursor: pointer; }
+    .hist-head h2 { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; margin: 6px 0 2px; }
+    .hist-sub { color: var(--text-2); font-size: 14px; font-weight: 600; }
+    .seg { display: inline-flex; gap: 4px; padding: 4px; background: #e6e8f3; border-radius: 12px; margin: 16px 2px 4px; }
+    .seg button { border: none; background: none; font-family: inherit; font-size: 14px; font-weight: 800; color: var(--text-2);
+                  padding: 8px 14px; border-radius: 9px; cursor: pointer; }
+    .seg button.on { background: var(--card); color: var(--text); box-shadow: var(--shadow-sm); }
+    .hist-fig { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.45;
+                color: var(--text); white-space: pre; overflow-x: auto; margin: 8px 0 0 29px; }
+    .hist-empty { text-align: center; color: var(--text-2); font-weight: 600; padding: 40px 20px; }
+    .hist-del { display: block; margin: 26px auto 10px; background: none; border: none; color: #c0271c;
+                font-family: inherit; font-size: 15px; font-weight: 700; cursor: pointer; padding: 10px; }
+  </style>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="home-head">
+      <h1>Homework Practice</h1>
+      <p class="sub">Every finished test, with his answers and his scratch paper.</p>
+    </header>
+    <nav class="tabs" aria-label="Sections">
+      <a class="tab" href="index.html">Practice</a>
+      <a class="tab on" href="history.html" aria-current="page">History</a>
+    </nav>
+    <div id="view"></div>
+  </main>
+
+  <script src="assets/history.js"></script>
+  <script>
+    /* ============================================================
+       HISTORY — every test handed in on this device, newest first.
+       Tap one to review it question by question: what he put, the
+       right answer, and the scratch paper he worked on. "Missed"
+       shows just the ones he got wrong.
+       ============================================================ */
+
+    const TICK  = '<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#157f3d"/><path d="M5.6 10.3l2.9 2.9 5.9-6.1" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    const CROSS = '<svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" fill="#c0271c"/><path d="M6.8 6.8l6.4 6.4M13.2 6.8l-6.4 6.4" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>';
+    const $ = id => document.getElementById(id);
+    const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    let kidNames = {}, showMissed = true;
+
+    const when = iso => new Date(iso).toLocaleString("en-US",
+      { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+    const pctOf = e => Math.round(e.right / Math.max(1, e.total) * 100);
+    const band = p => p >= 90 ? "hi" : p >= 70 ? "mid" : "lo";
+
+    function listView() {
+      const all = WorkHistory.list().slice().reverse();          // newest first
+      if (!all.length) return `<div class="hist-empty">Nothing here yet.<br>Finished tests show up here.</div>`;
+      const byKid = {};
+      all.forEach(e => (byKid[e.kid || "?"] = byKid[e.kid || "?"] || []).push(e));
+      return Object.entries(byKid).map(([kid, list]) => `
+        <section class="hist-kid">
+          <div class="hist-kid-name">${esc(kidNames[kid] || kid)}</div>
+          ${list.map(e => {
+            const p = pctOf(e), missed = e.total - e.right;
+            return `<a class="hist-row" href="#e=${encodeURIComponent(e.id)}">
+              <div class="hist-main">
+                <div class="hist-title">${esc(e.title || e.set)}</div>
+                <div class="hist-when">${esc(when(e.at))}</div>
+              </div>
+              <div class="hist-score">
+                <span class="hist-pct ${band(p)}">${e.right}/${e.total} · ${p}%</span>
+                <div class="hist-missed">${missed ? missed + " missed" : "none missed"}</div>
+              </div>
+              <span class="hist-chev">›</span>
+            </a>`;
+          }).join("")}
+        </section>`).join("");
+    }
+
+    function itemRow(it, n) {
+      const img = it.pad ? WorkHistory.padImage(it.pad) : null;
+      return `<div class="rev">
+        <div class="rev-top">
+          <div class="rev-mark">${it.right ? TICK : CROSS}</div>
+          <div class="rev-def"><span class="rev-num">Question ${n}</span>${esc(it.prompt)}${it.kind ? `<span class="rev-kind">${esc(it.kind)}</span>` : ""}</div>
+        </div>
+        ${it.figure ? `<div class="hist-fig">${esc(it.figure)}</div>` : ""}
+        ${it.right
+          ? `<div class="rev-line good">Answer: ${esc(it.answer)}</div>`
+          : `<div class="rev-line bad">He put: ${esc(it.given)}</div>
+             <div class="rev-line good">Answer: ${esc(it.answer)}</div>
+             ${it.note ? `<div class="rev-line slip">${esc(it.note)}</div>` : ""}
+             ${it.explain ? `<div class="rev-why">${esc(it.explain)}</div>` : ""}`}
+        ${img ? `<div class="rev-work"><div class="rev-work-cap">Scratch paper</div>
+                 <img src="${img.src}" width="${img.w}" height="${img.h}" alt="Scratch paper"></div>` : ""}
+      </div>`;
+    }
+
+    function detailView(e) {
+      const p = pctOf(e), items = e.items.map((it, i) => ({ it, n: i + 1 }));
+      const missed = items.filter(x => !x.it.right);
+      const shown = showMissed ? missed : items;
+      return `
+        <div class="hist-head">
+          <a class="hist-back" href="#">‹ History</a>
+          <h2>${esc(e.title || e.set)}</h2>
+          <div class="hist-sub">${esc(kidNames[e.kid] || e.kid)} · ${esc(when(e.at))} ·
+            <span class="hist-pct ${band(p)}">${e.right}/${e.total} · ${p}%</span></div>
+        </div>
+        <div class="seg" role="tablist">
+          <button class="${showMissed ? "on" : ""}" data-show="missed">Missed (${missed.length})</button>
+          <button class="${showMissed ? "" : "on"}" data-show="all">All (${items.length})</button>
+        </div>
+        ${shown.length ? shown.map(x => itemRow(x.it, x.n)).join("")
+                       : `<div class="hist-empty">Nothing missed on this one. 🎯</div>`}
+        <button class="hist-del" data-del="${esc(e.id)}">Delete this test from History</button>`;
+    }
+
+    function render() {
+      const m = location.hash.match(/^#e=(.+)$/);
+      const e = m && WorkHistory.get(decodeURIComponent(m[1]));
+      $("view").innerHTML = e ? detailView(e) : listView();
+      window.scrollTo(0, 0);
+    }
+
+    document.addEventListener("click", ev => {
+      const show = ev.target.closest("[data-show]");
+      if (show) { showMissed = show.dataset.show === "missed"; render(); return; }
+      const del = ev.target.closest("[data-del]");
+      if (del && confirm("Delete this test from History? This can't be undone.")) {
+        WorkHistory.remove(del.dataset.del);
+        location.hash = "";
+      }
+    });
+    window.addEventListener("hashchange", () => { showMissed = true; render(); });
+
+    // Kid names come from the manifest; history still shows without it.
+    const s = document.createElement("script");
+    s.src = "data/manifest.js?v=" + Date.now();
+    s.onload = () => { (window.MANIFEST?.kids || []).forEach(k => { kidNames[k.id] = k.name; }); render(); };
+    s.onerror = render;
+    document.head.appendChild(s);
+  </script>
+</body>
+</html>

@@ -113,6 +113,7 @@
 
 <script src="../../assets/loader.js"></script>
 <script src="../../assets/progress.js"></script>
+<script src="../../assets/history.js"></script>
 <script>
   /* ============================================================
      VOCABULARY engine.
@@ -216,6 +217,17 @@
       ? window.Progress.record(KID, SETID, Math.round(correct / deck.length * 100))
       : { stars: 0, streak: 0, totalStars: 0 };
     finished = true;
+    if (window.WorkHistory) WorkHistory.save({
+      kid: KID, set: SETID, title: TITLE, engine: "vocab",
+      right: correct, total: deck.length,
+      items: deck.map((c, i) => ({
+        prompt: c.term.definition,
+        kind: c.kind === "spell" ? "spelled" : undefined,
+        given: isBlank(answers[i]) ? "Left blank" : answers[i],
+        answer: c.term.word,
+        right: isRight(c, answers[i])
+      }))
+    });
     render();
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
