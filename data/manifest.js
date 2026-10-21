@@ -46,11 +46,12 @@ window.MANIFEST = {
         {
           name: "ELA",
           activities: [
-            // Archived 2026-10-15 — finished with these two. Scores are kept;
-            // delete  archived: true  to put either back on the home screen.
+            { set: "evan-vocab-good", title: "ben, bene, bon = good, well", engine: "vocab" , added: "2026-10-21" },
+            // Archived — finished with these. Scores are kept; delete
+            // archived: true  to put one back on the home screen.
             { set: "evan-vocab-3", title: "Key Literacy Terms 3", engine: "vocab" , added: "2026-06-07", archived: true },
             { set: "evan-vocab-4", title: "Key Literacy Terms 4", engine: "vocab" , added: "2026-06-07", archived: true },
-            { set: "evan-vocab-graph", title: "16 October Vocab Test List", engine: "vocab" , added: "2026-10-15" }
+            { set: "evan-vocab-graph", title: "16 October Vocab Test List", engine: "vocab" , added: "2026-10-15", archived: true }
           ]
         },
         {
