@@ -47,7 +47,7 @@
       align-items: center; flex-wrap: wrap; gap: 1px;
       font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
       font-size: 24px; font-weight: 600; letter-spacing: 0.02em; color: var(--text);
-      word-break: break-all;
+      word-break: break-all; white-space: pre-wrap;   /* show the space he typed */
     }
     .answer-box .placeholder { font-family: var(--font); font-size: 16px; font-weight: 600; color: #b9bdcc; letter-spacing: 0; }
     .caret { display: inline-block; width: 2px; height: 26px; background: var(--accent); animation: blink 1s steps(1) infinite; }
@@ -62,6 +62,7 @@
     }
     .key:active { transform: scale(0.93); filter: brightness(0.96); }
     .key.wide { grid-column: span 2; background: #e8eaf4; color: var(--text-2); font-size: 15px; }
+    .key.space { grid-column: 1 / -1; color: var(--text-2); font-size: 15px; }
 
     .bank {
       flex: none; width: 190px; background: var(--card); border-radius: 14px;
@@ -166,10 +167,11 @@
     return shuffle([card.term.word, ...others.slice(0, Math.max(0, CHOICES_PER_CARD - 1))]);
   }
 
-  // Same word, same spelling. Case and stray spaces are not the test.
+  // Same word, same spelling. Case and stray spaces are not the test
+  // ("bon  voyage" with two spaces is still bon voyage).
+  const norm = s => s.trim().toLowerCase().replace(/\s+/g, " ");
   const isRight = (card, given) =>
-    typeof given === "string" &&
-    given.trim().toLowerCase() === card.term.word.trim().toLowerCase();
+    typeof given === "string" && norm(given) === norm(card.term.word);
 
   /* ---------- Flow ------------------------------------------------------- */
 
@@ -189,6 +191,7 @@
   function keyTap(ch) {
     const cur = answers[index] || "";
     if (ch === "back") answers[index] = cur.slice(0, -1);
+    else if (ch === " " && (cur === "" || cur.endsWith(" "))) return;   // one space, between words
     else if (cur.length < 40) answers[index] = cur + ch;
     render();
   }
@@ -261,9 +264,12 @@
     const shown = typed
       ? `${esc(typed)}<span class="caret"></span>`
       : `<span class="placeholder">Tap the letters to spell it</span>`;
+    // A space bar only when a word in this list has a space in it (bon voyage).
+    const needsSpace = terms.some(t => /\s/.test(t.word.trim()));
     const keys = LETTERS
       .map(c => `<button class="key" data-act="key" data-ch="${c}">${c}</button>`)
-      .join("") + `<button class="key wide" data-act="key" data-ch="back">⌫ Delete</button>`;
+      .join("") + `<button class="key wide" data-act="key" data-ch="back">⌫ Delete</button>` +
+      (needsSpace ? `<button class="key space" data-act="key" data-ch=" " aria-label="Space">space</button>` : "");
     const bank = terms.map(t => `<li>${esc(t.word)}</li>`).join("");
     return `
       <div class="card">

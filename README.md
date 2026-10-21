@@ -10,7 +10,8 @@ Instead of one big file per game, the site is split into two parts:
 
 - **Engines** (in `engines/`) — the *games* themselves. Written once, you
   rarely touch these. Each engine works for any subject.
-  - `engines/vocab/`  — read a definition, pick the matching word.
+  - `engines/vocab/`  — read a definition, pick the matching word, then spell
+    a few. A list with a two-word answer ("bon voyage") gets a space bar.
   - `engines/speak/`  — a word appears, the child says it out loud and the
     browser checks it (needs Chrome or Safari + a microphone).
   - `engines/math/`   — a practice test built to look like the real online
